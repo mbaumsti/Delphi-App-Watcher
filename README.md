@@ -116,8 +116,20 @@ To make a **Delphi application controllable** by AppWatcher, follow these steps:
 	end;   
 	```
 	
+### 🔹 **4. Creating Configuration Symlinks**  
+To avoid copying `.ini` files into multiple folders, use the provided **`AppWatcherLink.cmd`** script:  
 
-### 🔹 **4. Test Application `AppWatcherClient.dproj`**  
+1. Open a **command prompt as Administrator**.  
+2. Run the script and follow the prompts:  
+   ```cmd
+   tools\AppWatcherLink.cmd
+   ```
+3. Enter the **source folder** where the `.ini` files are stored (e.g., `C:\AppWatcher\config`).  
+4. Enter the **destination folder** where the symlinks should be created (e.g., `C:\Program Files\AppWatcher`).  
+
+This will create symbolic links to the `.ini` files in the desired location instead of manually copying them.  
+
+### 🔹 **5. Test Application `AppWatcherClient.dproj`**  
 
 The `AppWatcherClient.dproj` application is provided to **test the integration** of the `TAppWatcherClient` component **without modifying your own application**.  
 
@@ -133,16 +145,5 @@ The `AppWatcherClient.dproj` application is provided to **test the integration**
 This tool allows you to **test AppWatcher’s functionality** before integrating `TAppWatcherClient` into your final applications. 🚀  
 
 
-### 🔗 **Creating Configuration Symlinks**  
-To avoid copying `.ini` files into multiple folders, use the provided **`AppWatcherLink.cmd`** script:  
 
-1. Open a **command prompt as Administrator**.  
-2. Run the script and follow the prompts:  
-   ```cmd
-   tools\AppWatcherLink.cmd
-   ```
-3. Enter the **source folder** where the `.ini` files are stored (e.g., `C:\AppWatcher\config`).  
-4. Enter the **destination folder** where the symlinks should be created (e.g., `C:\Program Files\AppWatcher`).  
-
-This will create symbolic links to the `.ini` files in the desired location instead of manually copying them.  
 
