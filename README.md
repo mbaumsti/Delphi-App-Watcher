@@ -115,7 +115,8 @@ To make a **Delphi application controllable** by AppWatcher, follow these steps:
 			Params := '/Mode=test';  // Example parameter
 	end;   
 	```
-
+   
+### 🔹 **4. Managing Configuration Files (`.ini`)**  
 AppWatcher **relies on INI files** for configuration. These files must be **accessible to the application** to ensure proper operation.  
 
 📌 **Where does AppWatcher look for INI files?**  
