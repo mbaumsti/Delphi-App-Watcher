@@ -172,7 +172,11 @@ The `AppWatcherClient.dproj` application is provided to **test the integration**
   - A `TAppWatcherClient` placed on a secondary form **will not work**, as the **main application window takes priority**.  
   - This allows for flexible UI design where a **window may act as the MainForm in one application but as a secondary form in another**.  
 
-This tool allows you to **test AppWatcher’s functionality** before integrating `TAppWatcherClient` into your final applications. 🚀  
+This tool allows you to **test AppWatcher’s functionality** before integrating `TAppWatcherClient` into your final applications. 🚀 
+
+## Assets
+Some icons used in this project are from [Icons8](https://icons8.com).
+
 
 
 
