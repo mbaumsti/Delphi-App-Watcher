@@ -1,0 +1,5 @@
+[Config]
+ServerIP=192.0.2.102
+Port=2510
+StopTimeOut=30
+

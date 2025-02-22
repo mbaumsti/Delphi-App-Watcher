@@ -1,0 +1,149 @@
+﻿; *******************************************************************************
+;  Projet  : AppWatcher
+;  Fichier : AppWatcher_lang_fr.ini
+;  Author   : mbaumsti
+;  GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
+;  Date     : 20/02/2025
+;  Version : 1.0
+;  Licence : MIT
+;
+;  Description :
+;  -------------
+;  Ce fichier contient les messages en **français** pour l'application AppWatcher.
+;  Il est utilisé par `AppWatcher_Lang.pas` pour charger les textes en fonction
+;  de la langue sélectionnée.
+;
+;  Structure :
+;  -----------
+;  - Chaque section `[SECTION]` correspond à une catégorie de messages.
+;  - Chaque clé `CLE=Valeur` contient une chaîne de texte localisée.
+;  - Les valeurs peuvent contenir `\n` pour représenter un saut de ligne.
+;
+;  Historique des modifications :
+;  ------------------------------
+;  - 12/02/2025 : Création initiale
+; 
+;  Remarque :
+;  ----------
+;  Ce fichier est **open-source**. Vous pouvez proposer des améliorations !
+; *******************************************************************************
+
+
+[AGENT]
+CONNECTED = "✅ [CONNEXION] Connecté à AppWatcherMaster."
+CLIENT_CONNECTED = "✔️ [CONNEXION] Client connecté : %s"
+CLIENT_DISCONNECTED = "ℹ️ [INFO] Un client s'est déconnecté."
+CLIENT_COUNT = "📡 [INFO] Nombre de CLIENTS connectés = %s"
+
+COMMAND_RECEIVED = "📩 [COMMANDE] Reçue : %s"
+ANSWER_RECEIVED = "📩 [RÉPONSE] Reçue : %s"
+CLIENT_LIST_SENT = "📡 [INFO] Liste envoyée : %s"
+
+ERROR_RECEIVING = "❌ [ERREUR] Problème en recevant une réponse d'un client : %s"
+ERROR_CONNECTING = "❌ [ERREUR] Problème de connexion au MASTER : %s"
+RECONNECTING = "🔄 Tentative de reconnexion au MASTER..."
+APP_NOT_FOUND = "⚠️ [AVERTISSEMENT] Chemin introuvable : %s"
+
+PROTECT = "🔒 [SÉCURITÉ] Protection activée."
+PASSWORD_REQUEST = "🔒 [SÉCURITÉ] Entrez le mot de passe pour quitter :"
+INVALID_PASSWORD = "❌ [SÉCURITÉ] Mot de passe incorrect."
+
+START_RECEIVED = "🚀 [START] Demande de START reçue."
+START_NOAPP = "⚠️ [AVERTISSEMENT] Aucune application à redémarrer."
+RESTART_STOP_LIST = "🚀 [START] Demande de redémarrage des applications : %s"
+TRY_RESTART = "🚀 [START] Tentative de redémarrage de %s avec arguments %s"
+APP_RESTARTED = "✔️ [START] Application redémarrée : %s"
+RESTART_ERROR = "❌ [START] Échec du redémarrage : %s"
+
+WHO_SEND = "📡 [WHO] Envoi de WHO au CLIENT %s"
+STOP_REQUEST_RECEIVED = "🛑 [STOP] Reçu pour %s, envoi du STOP_REQUEST."
+STOP_REQUEST_SEND = "📩 [STOP] STOP_REQUEST envoyé au CLIENT."
+STOP_REQUEST_FAILED = "❌ [STOP] Échec de l'envoi de STOP_REQUEST au CLIENT."
+STOP_REPLY = "✅ [STOP] Réponse finale STOP reçue de %s avec Handle %d."
+STOP_COUNTDOWN =  "⏳ Décompte initialisé pour %s: %d secondes"
+
+STOP_RECEIVED = "🛑 [STOP] Demande de STOP reçue pour %s."
+STOP_SENT = "📩 [STOP] STOP envoyé à %s."
+STOP_SENT_ERROR = "❌ [STOP] Échec de l'envoi du STOP à %s."
+STOP_EXEC = "📩 [STOP] Exécution du STOP pour %s."
+CLIENT_STOPPED = "✔️ [STOP] %s arrêté. Chemin enregistré : %s."
+CLIENT_STOP_REFUSED = "❌ [STOP] Refusé par %s."
+STOP_CANCEL = "⛔ [STOP] Annulé pour %s."
+
+CANCEL_RECEIVED = "🚀 [CANCEL] Demande de CANCEL reçue."
+CANCEL_EXEC = "📩 [CANCEL] Exécution de CANCEL pour %s."
+CANCEL_ERROR = "⚠️ [CANCEL] Impossible d’annuler STOP pour %s : Pas trouvé."
+CANCEL_EMPTY = "⚠️ [CANCEL] Aucune application en attente d'arrêt."
+
+
+
+[DLGSTOP]
+COUNTDOWN = "🕐 [ARRÊT] L'application %s s'arrêtera dans %d secondes...\n   💾 Sauvegardez votre travail !\n   ❌ Ne fermez pas l'application vous-même !!!"
+STOPPING = "⏳ [ARRÊT] Fermeture de %s en cours...\n   ⚠️ Ne relancez pas l'application.\n   🚀 Elle sera redémarrée automatiquement sous peu."
+WAIT = "⏳ [ARRÊT] %s est maintenant arrêté.\n   ⚠️ Ne le relancez pas.\n   🚀 Il redémarrera automatiquement dans un instant."
+RESTART = "🚀 [RESTART] L'application %s a été redémarrée avec succès !\n\n   ✅ Vous pouvez fermer ce dialogue."
+CANCEL = "🚀 [ANNULATION] L'arrêt de %s a été annulé.\n\n   ✅ Vous pouvez fermer ce dialogue."
+
+
+[MASTER]
+CLIENT_CONNECTED = "✅ [CONNEXION] Client connecté : %s."
+CLIENT_DISCONNECTED = "❌ [CONNEXION] Client déconnecté : %s."
+SERVER_STOPPED = "🚀 [SERVEUR] Arrêté."
+CLIENTS_LIST_UPDATED = "📌 [INFO] Mise à jour de la liste des clients en cours..."
+
+LIST_SENT = "📩 [COMMANDE] WHO envoyée à %s pour %s : Handle=%s."
+STOP_SENT = "🛑 [STOP] Envoyé à %s pour %s : Handle=%s."
+CANCEL_SENT = "⛔ [CANCEL] Envoyé à %s pour %s : Handle=%s."
+START_SENT = "🚀 [START] Envoyé à %s pour %s : Handle=%s."
+
+ERROR_CONTACTING_CLIENT = "❌ [ERREUR] Impossible de contacter %s."
+ERROR_RECEIVING_ANSWER = "❌ [ERREUR] Problème en recevant la réponse d''un client : %s."
+ENTER_PROGRAM_NAME = "⚠️ [AVERTISSEMENT] Veuillez entrer un nom de programme."
+
+WHO_REPLY = "✅ [WHO] Application détectée sur %s : %s - Handle=%s."
+ACK_REPLY = "✅ [ACK] Arrêt accepté sur %s : %s - Handle=%s."
+NACK_REPLY = "⚠️ [NACK] Arrêt refusé sur %s : %s - Handle=%s."
+STOP_REQUEST_REPLY = "📩 [STOP] STOP_REQUEST reçu, réponse envoyée avec Handle %s."
+UNKNOW_REPLY = "📩 [RÉPONSE] Inconnue de %s: %s - Handle=%s."
+
+STOP_AGENT_REQUEST = "Voulez-vous vraiment arrêter tous les agents ?"
+STOP_AGENT_SENT = "STOP envoyé aux Agents."
+
+[MASTER_UI]
+BTN_LIST_APPS = "📦 Liste des applications"
+BTN_STOP_APP = "🛑 Arrêter l'application"
+BTN_START = "🚀 Démarrer"
+BTN_CANCEL = "❌ Annuler"
+BTN_STOP_AGENT = "🛑 Arrêter les agents"
+LBL_APP_NAME = "Application à arrêter"
+LBL_DURATION = "⏳ Durée (sec.)"
+RDIO_FRENCH = "Français"
+RDIO_ENGLISH = "English"
+LBL_CLIENT_LIST = "Liste des clients"
+LBL_MSG = "Messages"
+LBL_APPLIST = "Liste des applications"
+; Définition des en-têtes de la StringGRID
+STRGRID_IP = "IP du client"
+STRGRID_CLINAME =  "Nom Client"
+STRGRID_APPNAME =  "Application"
+STRGRID_HANDLE =  "Handle"
+STRGRID_PATH =  "Chemin"
+STRGRID_USERNAME =  "utilisateur"
+
+[CLIENT]
+CONNECTED = "✅ [CONNEXION] Connecté à AppWatcher."
+FAILED_CONNECT = "⚠️ [ERREUR] Échec de connexion à AppWatcher, nouvelle tentative dans 3s..."
+
+MESSAGE_RECEIVED = "📩 [INFO] Message reçu de l’AGENT : %s."
+UNKNOW_COMMAND = "📩 [ERREUR] Commande inconnue pour %s - Handle=%d."
+WHO_RECEIVED = "📡 [WHO] Reçu pour %s - Handle=%d."
+
+STOP_RECEIVED = "🛑 [STOP] Fermeture demandée pour %s - Handle=%d."
+STOP_REFUSED = "⚠️ [STOP] Refusé pour %s - Handle=%d."
+STOP_ACCEPTED = "✅ [STOP] Accepté pour %s - Handle=%d."
+STOP_REQUEST = "📩 [STOP] STOP_REQUEST reçu, réponse envoyée avec Handle %d."
+
+ERROR_RECEIVING = "❌ [ERREUR] Problème lors de la lecture des commandes : %s."
+
+NOT_ACTIVE = "❌ [ERREUR] Cette instance de AppWatcher n'est pas active."
+

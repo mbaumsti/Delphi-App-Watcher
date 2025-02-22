@@ -1,0 +1,36 @@
+; *******************************************************************************
+;  Project  : AppWatcher
+;  File     : AppWatcher.ini
+;  Author   : mbaumsti
+;  GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
+;  Date     : 20/02/2025
+;  Version  : 1.0
+;  License  : MIT
+;
+;  Description :
+;  -------------
+;  This configuration file is used by **AppWatcher Master** and **AppWatcher Agent**.
+;
+;  - The **Master** updates this file with its own IP when launched.
+;  - The **Agents** periodically read this file to determine the Master’s current IP.
+;  - The **Port** setting defines the communication port used between the Master and Agents.
+;  - The **StopTimeOut** setting defines the countdown before stopping an application.
+;
+;  Change Log :
+;  ------------
+;  - 12/02/2025 : Initial creation
+;  - 20/02/2025 : Improved documentation
+;
+;  Notes :
+;  -------
+;  - If you run multiple **Masters**, the last one started will take control.
+;  - If the **Master’s IP changes**, Agents will detect it on their next update cycle.
+;  - To use a custom port, modify the **Port** value before launching the Master.
+;  - This file is **open-source**. Contributions and improvements are welcome!
+; *******************************************************************************
+
+[Config]
+ServerIP=192.0.2.102  ; Master’s IP address (updated automatically)
+Port=2510             ; Communication port between Master and Agents
+StopTimeOut=30        ; Countdown (in seconds) before stopping applications
+
