@@ -71,6 +71,7 @@ Win64/
 
 # Delphi history and backups
 __history/
+**/__history/
 __recovery/
 *.~*
 
