@@ -3,8 +3,8 @@
   Unit     : AppWatcher_Lang.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 23/02/2025
-  Version  : 1.1
+  Date     : 24/02/2025
+  Version  : 1.2
   License  : MIT
 
   Description :
@@ -30,6 +30,7 @@
   - [22/02/2025] : use of AppWatcher_consts
   - [22/02/2025] : Deleted singleton AppLangManager. All applications must be modified to use a local instance.
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
+  - [24/02/2025] : v1.2 Improved FindConfigPath to support .lnk shortcuts when searching for configuration files.
 
   Notes :
   -------
@@ -89,45 +90,77 @@ begin
     end;
 end;
 
+
+
+function ResolveShortcut(const LnkFile: string): string;
+var
+  ShellLink: IShellLink;
+  PersistFile: IPersistFile;
+  WidePath: array[0..MAX_PATH] of WideChar;
+  FindData: TWin32FindData;
+begin
+  Result := '';
+
+  CoInitialize(nil);
+  try
+    ShellLink := CreateComObject(CLSID_ShellLink) as IShellLink;
+    PersistFile := ShellLink as IPersistFile;
+
+    if Succeeded(PersistFile.Load(PWideChar(WideString(LnkFile)), STGM_READ)) then
+    begin
+      if Succeeded(ShellLink.GetPath(WidePath, MAX_PATH, FindData, 0)) then
+        Result := WidePath;
+    end;
+  finally
+    CoUninitialize;
+  end;
+end;
+
 function FindConfigPath(const IniFileName: string): string;
 var
-    CurrentPath, ConfigPath, FullPath: string;
+  CurrentPath, FullPath, FileName, ResolvedPath: string;
+  Files: TArray<string>;
 begin
-    Result := '';
-    CurrentPath := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
+  Result := '';
+  CurrentPath := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
 
-    while True do
+  while True do
+  begin
+    // 🔹 Chercher directement le fichier .ini
+    FullPath := CurrentPath + IniFileName;
+    if FileExists(FullPath, True) then
     begin
-        //🔹 Vérifier directement dans le répertoire courant
-        FullPath := CurrentPath + IniFileName;
-        if FileExists(FullPath) then
-        begin
-            Result := FullPath;
-            Exit;
-        end;
-
-        //🔹 Vérifier dans le sous-dossier Config
-        ConfigPath := CurrentPath + 'Config\' + IniFileName;
-        if FileExists(ConfigPath) then
-        begin
-            Result := ConfigPath;
-            Exit;
-        end;
-
-        //🔹 Vérifier si on est déjà à la racine du disque
-        if (CurrentPath = ExtractFileDrive(CurrentPath) + PathDelim) or (CurrentPath = PathDelim) then
-            Break; //On arrête si on est arrivé à la racine
-
-        //🔹 Remonter d'un cran
-        CurrentPath := ExpandFileName(CurrentPath + '..\');
-        CurrentPath := IncludeTrailingPathDelimiter(CurrentPath);
+      Result := FullPath;
+      Exit;
     end;
 
-    //📌 Dernier recours : dossier %APPDATA%
-    FullPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('APPDATA')) + 'AppWatcher\Config\' + IniFileName;
-    if FileExists(FullPath) then
-        Result := FullPath;
+    // 🔹 Vérifier les raccourcis dans le dossier
+    Files := TDirectory.GetFiles(CurrentPath, '*.lnk', TSearchOption.soTopDirectoryOnly);
+    for FileName in Files do
+    begin
+      ResolvedPath := ResolveShortcut(FileName);
+      if FileExists(ResolvedPath, True) and SameText(ExtractFileName(ResolvedPath), IniFileName) then
+      begin
+        Result := ResolvedPath;
+        Exit;
+      end;
+    end;
+
+    // 🔹 Vérifier si on est déjà à la racine du disque
+    if (CurrentPath = ExtractFileDrive(CurrentPath) + PathDelim) or (CurrentPath = PathDelim) then
+      Break;
+
+    // 🔹 Remonter d'un cran
+    CurrentPath := ExpandFileName(CurrentPath + '..\');
+    CurrentPath := IncludeTrailingPathDelimiter(CurrentPath);
+  end;
+
+  // 📌 Dernier recours : dossier %APPDATA%
+  FullPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('APPDATA')) + 'AppWatcher\Config\' + IniFileName;
+  if FileExists(FullPath, True) then
+    Result := FullPath;
 end;
+
 
 Function TAppLangManager.LoadLanguage(ALanguage: TAppWatcherLang): boolean;
 var

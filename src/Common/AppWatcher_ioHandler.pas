@@ -3,8 +3,8 @@
   Unit     : AppWatcher_ioHandler.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 23/02/2025
-  Version  : 1.1
+  Date     : 24/02/2025
+  Version  : 1.2
   License  : MIT
 
   Description :
@@ -24,6 +24,7 @@
   - [09/02/2025] : Initial creation
   - [12/02/2025] : Added support for `STOP_REQUEST` and `REPLY_STOP_REQUEST` commands
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
+  - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
 
 *******************************************************************************)
 

@@ -3,8 +3,8 @@
   Unit    : AppWatcherMaster_main.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 23/02/2025
-  Version : 1.1
+  Date     : 24/02/2025
+  Version : 1.2
   License : MIT
 
   Description :
@@ -30,6 +30,7 @@
   - [21/02/2025] : Improved INI file handling in FormCreate :  Ensured `FindConfigPath` checks file existence before loading.
   - [22/02/2025] : Replaced the singleton AppLangManager with a local instance to allow multiple instances.
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
+  - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
 
   Note :
   -------

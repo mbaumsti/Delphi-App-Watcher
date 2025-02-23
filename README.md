@@ -119,43 +119,12 @@ To make a **Delphi application controllable** by AppWatcher, follow these steps:
 ### 🔹 **4. Managing Configuration Files (`.ini`)**  
 AppWatcher **relies on INI files** for configuration. These files must be **accessible to the application** to ensure proper operation.  
 
-📌 **Where does AppWatcher look for INI files?**  
-✔ **In the application's execution path** (e.g., `C:\Program Files\AppWatcher\`).  
-✔ **Inside a `Config\` subdirectory** of the execution path (e.g., `C:\Program Files\AppWatcher\Config\`).  
+📌 Where does AppWatcher look for INI files?
+✔ In the application's execution path (e.g., C:\Program Files\AppWatcher\).
+✔ Inside a Config\ subdirectory of the execution path (e.g., C:\Program Files\AppWatcher\Config\).
+✔ Following Windows shortcuts (.lnk): If an .ini file is not found directly, AppWatcher checks if a shortcut (.lnk) with the same name exists and follows its target.
 
-**Valid locations for `AppWatcher.ini`:**  
-```
-C:\Program Files\AppWatcher\AppWatcher.ini       ✅ Valid
-C:\Program Files\AppWatcher\Config\AppWatcher.ini ✅ Valid
-C:\Users\Username\AppWatcher.ini                 ❌ Invalid (unless inside execution path)
-```
-
-💡 If **`AppWatcher.ini` is missing**, the application **will not start** and display an error message.  
-
----
-## **🛠 Tools**  
-
-### 🔹 **Creating Configuration Symlinks (Optional)**  
-
-If you want **all applications to use a single shared `INI` file location**, but they **run from different folders**, you can **create symbolic links** instead of copying the files.  
-
-A **symbolic link** allows AppWatcher to **see the `.ini` file as if it were physically present**, without duplication.  
-
-#### **🔧 How to Create Symlinks for INI Files**  
-1. **Open a Command Prompt as Administrator**.  
-2. **Run the provided script**:  
-   ```cmd
-   tools\AppWatcherLink.cmd
-   ```
-3. **Enter the source folder** where the real `.ini` files are stored (e.g., `C:\AppWatcher\Config`).  
-4. **Enter the destination folder** where the symlinks should be created (e.g., `C:\Program Files\AppWatcher`).  
-
-🔥 **Example:**  
-To link all `.ini` files from `C:\Server\Config` to `C:\Program Files\AppWatcher\Config`, run:  
-```cmd
-mklink /D "C:\Program Files\AppWatcher\Config" "C:\Server\Config"
-```
-Now, AppWatcher will read the **actual** `INI` files from `C:\Server\Config`, without requiring manual copies.  
+💡 If **`AppWatcher.ini` is missing**, the application  display an error message.  
 
 ---
 
@@ -175,9 +144,10 @@ The `AppWatcherClient.dproj` application is provided to **test the integration**
 This tool allows you to **test AppWatcher’s functionality** before integrating `TAppWatcherClient` into your final applications. 🚀 
 
 ## Assets
+🖼 Icons Attribution:
+
 Some icons used in this project are from [Icons8](https://icons8.com).
-
-
+As per Icons8's licensing, attribution is required unless you have a paid subscription.
 
 
 

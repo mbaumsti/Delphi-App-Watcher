@@ -3,8 +3,8 @@
   Unit     : AppWatcherAgent_main.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 23/02/2025
-  Version  : 1.1
+  Date     : 24/02/2025
+  Version  : 1.2
   License  : MIT
 
   Description :
@@ -30,6 +30,7 @@
   - [22/02/2025] : Replaced the singleton AppLangManager with a local instance to allow multiple instances.
   - [23/02/2025] : Fixed missing client section loading from INI file (ClientConfig port and interval are now loaded in Agent)
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
+  - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
 
 
   Notes :
@@ -337,7 +338,7 @@ end;
 procedure TFormAppWatcher.FormCreate(Sender: TObject);
 var
     LangValue:            string;
-    IniFilePathName, Msg: string;
+     Msg: string;
     LanguageLoaded:       Boolean;
 begin
     //🔹 Trouver le fichier de configuration
@@ -703,7 +704,7 @@ begin
 
             Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'TRY_RESTART'), [AppPath, AppParams]));
 
-            if FileExists(AppPath) then
+            if FileExists(AppPath,true) then
             begin
                 if ShellExecute(0, 'open', PChar(AppPath), PChar(AppParams), nil, SW_SHOWNORMAL) > 32 then
                 begin

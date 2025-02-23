@@ -3,8 +3,8 @@
   Unit     : AppWatcherClient_Component.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 23/02/2025
-  Version  : 1.1
+  Date     : 24/02/2025
+  Version  : 1.2
   License  : MIT
 
   Description :
@@ -32,6 +32,7 @@
   use of AppWatcher_consts
   - [22/02/2025] : Replaced the singleton AppLangManager with a local instance to allow multiple instances.
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
+  - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
 
   *******************************************************************************)
 
@@ -146,8 +147,6 @@ end;
 
 constructor TAppWatcherClient.Create(AOwner: TComponent);
 var
-    IniFilePathName: string;
-    Ini:             TMemIniFile;
     ParentForm:      TForm;
 begin
 

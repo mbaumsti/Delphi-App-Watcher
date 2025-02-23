@@ -3,8 +3,8 @@
   Unit     : AppWatcher_consts.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 23/02/2025
-  Version  : 1.1
+  Date     : 24/02/2025
+  Version  : 1.2
   License  : MIT
 
   Description :
@@ -19,6 +19,7 @@
   ------------
   - [22/02/2025] : Initial creation
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
+  - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
 
 
   *******************************************************************************)
@@ -29,7 +30,7 @@ interface
 
 const
     AppWPassword: string = 'appW';
-    MsgNoInstanceActiveEn: string = '❌ [ERROR] This AppWatcher instance is ot active.';
+    MsgNoInstanceActiveEn: string = '❌ [ERROR] This AppWatcher instance is not active.';
     MsgNoInstanceActiveFr: string = '❌ [ERREUR] Cette instance de AppWatcher n''est pas active.';
     MsgIniFileNotFoundEn: string = 'Configuration file "%s" not found.';
     MsgIniFileNotFoundFr: string = 'Fichier de configuration "%s"  introuvable.';

@@ -3,8 +3,8 @@
   Unit     : AppWatcherClient_main.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 23/02/2025
-  Version  : 1.1
+  Date     : 24/02/2025
+  Version  : 1.2
   License  : MIT
 
   Description :
@@ -28,6 +28,7 @@
   - [22/02/2025] : Adding StopRequested
   - [22/02/2025] : Replaced singleton `AppLangManager` with a local instance, allowing multiple instances of `TAppWatcherClient` to have different languages.
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
+  - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
 
   Notes :
   -------
@@ -44,14 +45,14 @@ uses
     Vcl.Controls, Vcl.Forms, Vcl.Dialogs, IdBaseComponent, IdComponent,
     IdTCPConnection, IdTCPClient, Vcl.ExtCtrls, Vcl.StdCtrls,
     AppWatcherClient_Component, AppWatcher_ioHandler,
-    AppWatcherClient_second;
+    AppWatcherClient_second, AppWatcher_Lang, System.IOUtils, Winapi.ShlObj, ActiveX, ComObj;
 
 type
 
     TFormAppWatcherClient = class(TForm)
         Memo1: TMemo;
         Button1: TButton;
-    AppWatcherClient1: TAppWatcherClient;
+        AppWatcherClient1: TAppWatcherClient;
 
         procedure AppWatcherClient1CommandReceived(Sender: TObject; const Command:
             TAppWatcherCommand);
@@ -102,8 +103,9 @@ end;
 procedure TFormAppWatcherClient.FormCloseQuery(Sender: TObject; var CanClose:
     Boolean);
 begin
-    if  AppWatcherClient1.CloseRequested then
-    CanClose := true;
+    CanClose:=False;
+    if AppWatcherClient1.CloseRequested then
+        CanClose := true;
 
 end;
 
