@@ -4,7 +4,7 @@
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date     : 24/02/2025
-  Version  : 1.2
+  Version  : 1.2.1
   License  : MIT
 
   Description :
@@ -31,6 +31,7 @@
   - [22/02/2025] : Deleted singleton AppLangManager. All applications must be modified to use a local instance.
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
   - [24/02/2025] : v1.2 Improved FindConfigPath to support .lnk shortcuts when searching for configuration files.
+  - [25/02/2025] : v1.2.1 - Fixed missing `Config\` folder check in `FindConfigPath`
 
   Notes :
   -------
@@ -118,7 +119,7 @@ end;
 
 function FindConfigPath(const IniFileName: string): string;
 var
-  CurrentPath, FullPath, FileName, ResolvedPath: string;
+  CurrentPath, FullPath, ConfigPath, FileName, ResolvedPath: string;
   Files: TArray<string>;
 begin
   Result := '';
@@ -134,7 +135,15 @@ begin
       Exit;
     end;
 
-    // 🔹 Vérifier les raccourcis dans le dossier
+    // 🔹 Vérifier dans le sous-dossier Config
+    ConfigPath := CurrentPath + 'Config\' + IniFileName;
+    if FileExists(ConfigPath, True) then
+    begin
+      Result := ConfigPath;
+      Exit;
+    end;
+
+    // 🔹 Vérifier les raccourcis dans le dossier courant
     Files := TDirectory.GetFiles(CurrentPath, '*.lnk', TSearchOption.soTopDirectoryOnly);
     for FileName in Files do
     begin
@@ -143,6 +152,21 @@ begin
       begin
         Result := ResolvedPath;
         Exit;
+      end;
+    end;
+
+    // 🔹 Vérifier les raccourcis dans le dossier Config
+    if DirectoryExists(CurrentPath + 'Config\') then
+    begin
+      Files := TDirectory.GetFiles(CurrentPath + 'Config\', '*.lnk', TSearchOption.soTopDirectoryOnly);
+      for FileName in Files do
+      begin
+        ResolvedPath := ResolveShortcut(FileName);
+        if FileExists(ResolvedPath, True) and SameText(ExtractFileName(ResolvedPath), IniFileName) then
+        begin
+          Result := ResolvedPath;
+          Exit;
+        end;
       end;
     end;
 
@@ -160,6 +184,9 @@ begin
   if FileExists(FullPath, True) then
     Result := FullPath;
 end;
+
+
+
 
 
 Function TAppLangManager.LoadLanguage(ALanguage: TAppWatcherLang): boolean;
