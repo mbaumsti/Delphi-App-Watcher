@@ -1,7 +1,7 @@
 object FormAppWatcherClient: TFormAppWatcherClient
   Left = 0
   Top = 0
-  Caption = 'FormAppWatcherClient'
+  Caption = 'FormAppWatcherClient - Second'
   ClientHeight = 441
   ClientWidth = 624
   Color = clBtnFace
@@ -21,9 +21,7 @@ object FormAppWatcherClient: TFormAppWatcherClient
     Margins.Bottom = 40
     Align = alClient
     Lines.Strings = (
-      'Configuration file "AppWatcher_lang_en.ini" not found.'
-      'Configuration file "AppWatcher.ini" not found.'
-      'Configuration file "AppWatcher_lang_en.ini" not found.')
+      'Configuration file "AppWatcher.ini" not found.')
     TabOrder = 0
   end
   object Button1: TButton

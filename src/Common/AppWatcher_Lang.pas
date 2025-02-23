@@ -3,8 +3,8 @@
   Unit     : AppWatcher_Lang.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 20/02/2025
-  Version  : 1.0
+  Date     : 23/02/2025
+  Version  : 1.1
   License  : MIT
 
   Description :
@@ -29,6 +29,7 @@
   - [21/02/2025] : Added FindConfigPath
   - [22/02/2025] : use of AppWatcher_consts
   - [22/02/2025] : Deleted singleton AppLangManager. All applications must be modified to use a local instance.
+  - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
 
   Notes :
   -------

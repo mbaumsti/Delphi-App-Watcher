@@ -3,9 +3,9 @@
   Unit     : AppWatcherAgent_Stop.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 20/02/2025
-  Version  : 1.0
-  License  : MIT / GPL / Other
+  Date     : 23/02/2025
+  Version  : 1.1
+  License  : MIT
 
   Description :
   -------------
@@ -24,6 +24,7 @@
   - 09/02/2025 : Initial creation
   - 15/02/2025 : Delete countdown timer (replace in Agent Main)
   - [22/02/2025] : Replaced the singleton AppLangManager with a local instance to allow multiple instances.
+  - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
 
   *******************************************************************************)
 

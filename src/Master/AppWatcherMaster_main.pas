@@ -1,10 +1,10 @@
 ﻿(*******************************************************************************
-  Project : AppWatcherMaster
+  Project : AppWatcher
   Unit    : AppWatcherMaster_main.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 20/02/2025
-  Version : 1.0
+  Date     : 23/02/2025
+  Version : 1.1
   License : MIT
 
   Description :
@@ -29,6 +29,7 @@
   - [20/02/2025] : Implemented thread-safe access control
   - [21/02/2025] : Improved INI file handling in FormCreate :  Ensured `FindConfigPath` checks file existence before loading.
   - [22/02/2025] : Replaced the singleton AppLangManager with a local instance to allow multiple instances.
+  - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
 
   Note :
   -------
@@ -249,7 +250,7 @@ begin
             DoClose := True;
         end;
 
-           FLanguageManager := TAppLangManager.Create(FLang);
+        FLanguageManager := TAppLangManager.Create(FLang);
 
         //🔹 Chargement de la langue
         //🔴 Si le fichier est introuvable, afficher un message et quitter
@@ -476,22 +477,24 @@ begin
 
     //🌍 Mise à jour des boutons
     section := 'MASTER_UI';
-    BtnListApps.Caption := FLanguageManager.GetMessage(section, 'BTN_LIST_APPS');
-    BtnStopApp.Caption := FLanguageManager.GetMessage(section, 'BTN_STOP_APP');
-    BtnStart.Caption := FLanguageManager.GetMessage(section, 'BTN_START');
-    BtnCancel.Caption := FLanguageManager.GetMessage(section, 'BTN_CANCEL');
-    BtnAgentStop.Caption := FLanguageManager.GetMessage(section, 'BTN_STOP_AGENT');
+    Self.caption := FLanguageManager.GetMessage(section, 'TITLE');
+
+    BtnListApps.caption := FLanguageManager.GetMessage(section, 'BTN_LIST_APPS');
+    BtnStopApp.caption := FLanguageManager.GetMessage(section, 'BTN_STOP_APP');
+    BtnStart.caption := FLanguageManager.GetMessage(section, 'BTN_START');
+    BtnCancel.caption := FLanguageManager.GetMessage(section, 'BTN_CANCEL');
+    BtnAgentStop.caption := FLanguageManager.GetMessage(section, 'BTN_STOP_AGENT');
 
     //🏷️ Mise à jour des labels
-    LblAppName.Caption := FLanguageManager.GetMessage(section, 'LBL_APP_NAME');
-    LblDuration.Caption := FLanguageManager.GetMessage(section, 'LBL_DURATION');
-    LblClientList.Caption := FLanguageManager.GetMessage(section, 'LBL_CLIENT_LIST');
-    LblMsg.Caption := FLanguageManager.GetMessage(section, 'LBL_MSG');
-    LblAppList.Caption := FLanguageManager.GetMessage(section, 'LBL_APPLIST');
+    LblAppName.caption := FLanguageManager.GetMessage(section, 'LBL_APP_NAME');
+    LblDuration.caption := FLanguageManager.GetMessage(section, 'LBL_DURATION');
+    LblClientList.caption := FLanguageManager.GetMessage(section, 'LBL_CLIENT_LIST');
+    LblMsg.caption := FLanguageManager.GetMessage(section, 'LBL_MSG');
+    LblAppList.caption := FLanguageManager.GetMessage(section, 'LBL_APPLIST');
 
     //📜 Mise à jour des groupes radio
-    RdioFrench.Caption := FLanguageManager.GetMessage(section, 'RDIO_FRENCH');
-    RdioEnglish.Caption := FLanguageManager.GetMessage(section, 'RDIO_ENGLISH');
+    RdioFrench.caption := FLanguageManager.GetMessage(section, 'RDIO_FRENCH');
+    RdioEnglish.caption := FLanguageManager.GetMessage(section, 'RDIO_ENGLISH');
 
     //Définition des en-têtes de la StringGRID
     StringGridApp.Cells[0, 0] := FLanguageManager.GetMessage(section, 'STRGRID_IP');

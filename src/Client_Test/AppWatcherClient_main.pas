@@ -3,8 +3,8 @@
   Unit     : AppWatcherClient_main.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 20/02/2025
-  Version  : 1.0
+  Date     : 23/02/2025
+  Version  : 1.1
   License  : MIT
 
   Description :
@@ -27,6 +27,7 @@
   - [19/02/2025] : Improved logging of received commands
   - [22/02/2025] : Adding StopRequested
   - [22/02/2025] : Replaced singleton `AppLangManager` with a local instance, allowing multiple instances of `TAppWatcherClient` to have different languages.
+  - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
 
   Notes :
   -------

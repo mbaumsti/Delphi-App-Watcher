@@ -3,8 +3,8 @@
   Unit     : AppWatcherClient_second.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 20/02/2025
-  Version  : 1.0
+  Date     : 23/02/2025
+  Version  : 1.1
   License  : MIT
 
   Description :
@@ -29,6 +29,7 @@
   Change Log :
   ------------
   - [19/02/2025] : Initial creation
+  - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
 
   Notes :
   -------

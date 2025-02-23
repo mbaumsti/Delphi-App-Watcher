@@ -1,7 +1,7 @@
 object FormAppWatcher: TFormAppWatcher
   Left = 0
   Top = 0
-  Caption = 'Agent de surveillance des applications  RS'
+  Caption = 'Agent de surveillance des applications'
   ClientHeight = 441
   ClientWidth = 624
   Color = clBtnFace

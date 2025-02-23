@@ -3,8 +3,8 @@
   Unit     : AppWatcherClient_Component.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 20/02/2025
-  Version  : 1.0
+  Date     : 23/02/2025
+  Version  : 1.1
   License  : MIT
 
   Description :
@@ -31,6 +31,7 @@
   New property CloseRequested to test in your onclosing query of your applications
   use of AppWatcher_consts
   - [22/02/2025] : Replaced the singleton AppLangManager with a local instance to allow multiple instances.
+  - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
 
   *******************************************************************************)
 
@@ -243,26 +244,23 @@ begin
         FLang := Value;
         FIsFirstLoad := False;
 
-        // ✅ Charger la langue localement
+        //✅ Charger la langue localement
         if not FLanguageManager.LoadLanguage(FLang) then
         begin
-            if FLang = langEn then
+            if FLang = LangEn then
                 Msg := format(MsgIniFileNotFoundEn, [LangEnIniFileName])
             else
                 Msg := format(MsgIniFileNotFoundFr, [LangFrIniFileName]);
 
             WriteMsg(Msg);
 
-            if FIsOnMainForm and not (csDesigning in ComponentState) then
-                MessageDlg(Msg, mtError, [mbOK], 0);
+            if FIsOnMainForm and not(csDesigning in ComponentState) then
+                MessageDlg(Msg, mtError, [mbok], 0);
 
-            FIniFileNotFound := True;
+            FIniFileNotFOund := true;
         end;
     end;
 end;
-
-
-
 
 Function TAppWatcherClient.InstanceActive: Boolean;
 Begin
@@ -389,11 +387,10 @@ procedure TAppWatcherClient.WriteMsgFormat(const Section, Msg: string; const Arg
 var
     FormattedMsg: string;
 begin
-    // ✅ Nouvelle version utilisant l'instance locale
-    FormattedMsg := Format(FLanguageManager.GetMessage(Section, Msg), Args);
+    //✅ Nouvelle version utilisant l'instance locale
+    FormattedMsg := format(FLanguageManager.GetMessage(Section, Msg), Args);
     WriteMsg(FormattedMsg);
 end;
-
 
 procedure TAppWatcherClient.CheckForCommands;
 var

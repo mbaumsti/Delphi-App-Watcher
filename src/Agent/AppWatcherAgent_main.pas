@@ -3,8 +3,8 @@
   Unit     : AppWatcherAgent_main.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 20/02/2025
-  Version  : 1.0
+  Date     : 23/02/2025
+  Version  : 1.1
   License  : MIT
 
   Description :
@@ -28,6 +28,9 @@
   - [19/02/2025] : Improved thread safety
   - [22/02/2025] : Improved INI file handling in FormCreate :  Ensured `FindConfigPath` checks file existence before loading.
   - [22/02/2025] : Replaced the singleton AppLangManager with a local instance to allow multiple instances.
+  - [23/02/2025] : Fixed missing client section loading from INI file (ClientConfig port and interval are now loaded in Agent)
+  - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
+
 
   Notes :
   -------
@@ -58,7 +61,7 @@ type
         Params: string; //Arguments
         FormStop: TFormStopNotification;
         State: TDialogState;
-        constructor Create( LanguageManager:TAppLangManager);
+        constructor Create(LanguageManager: TAppLangManager);
         destructor Destroy; override;
     end;
 
@@ -70,7 +73,7 @@ type
         destructor Destroy; override;
         procedure Clear;
         function TryGetStopDialog(Handle: HWND; AppName: string; var StopDialog: TStopDialog; var idx: Integer): Boolean;
-        function AddOrReplace(AppWatcherMsg: TAppWatcherMessage; LanguageManager:TAppLangManager): TStopDialog;
+        function AddOrReplace(AppWatcherMsg: TAppWatcherMessage; LanguageManager: TAppLangManager): TStopDialog;
         function AppList: string;
         function Count: Integer;
         procedure Delete(idx: Integer);
@@ -98,6 +101,8 @@ type
         FServerIP:             string;
         FServerPort:           Integer;
         FStopTimeOut:          Integer;
+        FCLientPort:           Integer;
+        FClientInterval:       Integer;
         FStopDialogs:          TStoppedDialogs;
         FLastReconnectAttempt: TDateTime;
         FLastConfigLoad:       TDateTime;
@@ -144,11 +149,9 @@ implementation
 var
     DialogLock: TCriticalSection;
 
-
-
     (*============================== GESTION  DIALOGUE DE STOP ====================================================================*)
 
-constructor TStopDialog.Create( LanguageManager:TAppLangManager);
+constructor TStopDialog.Create(LanguageManager: TAppLangManager);
 Begin
     inherited Create;
     CountDown := 30;
@@ -159,7 +162,7 @@ Begin
     State := dsInit;
     //Création du dialogue
     FormStop := TFormStopNotification.Create(FormAppWatcher);
-    FormStop.FLanguageManager:=LanguageManager;
+    FormStop.FLanguageManager := LanguageManager;
 End;
 
 destructor TStopDialog.Destroy;
@@ -216,7 +219,7 @@ begin
     end;
 end;
 
-function TStoppedDialogs.AddOrReplace(AppWatcherMsg: TAppWatcherMessage; LanguageManager:TAppLangManager): TStopDialog;
+function TStoppedDialogs.AddOrReplace(AppWatcherMsg: TAppWatcherMessage; LanguageManager: TAppLangManager): TStopDialog;
 var
     idx: Integer;
 begin
@@ -307,10 +310,14 @@ begin
         FServerIP := Ini.ReadString('MasterConfig', 'ServerIP', '127.0.0.1');
         FServerPort := Ini.ReadInteger('MasterConfig', 'Port', 2510);
         FStopTimeOut := Ini.ReadInteger('MasterConfig', 'StopTimeOut', 30);
-
         IdTCPClientMASTER.Port := FServerPort;
         IdTCPClientMASTER.Host := FServerIP;
         IdTCPClientMASTER.ReadTimeout := 10000; //Timeout de lecture pour éviter blocage
+
+        FCLientPort := Ini.ReadInteger('ClientConfig', 'Port', 2520);
+        FClientInterval := Ini.ReadInteger('ClientConfig', 'Interval', 3000);
+        IdTCPServerCLIENT.DefaultPort := FCLientPort;
+
     finally
             Ini.Free;
     end;
@@ -369,6 +376,8 @@ begin
 
     if FRequestingClose then
         application.terminate;
+
+    Self.caption := FLanguageManager.GetMessage('AGENT', 'TITLE');
 
     FLastReconnectAttempt := Now;
     FSignalErrorConnect := True;
@@ -825,7 +834,7 @@ begin
     Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'STOP_REPLY'), [Msg.AppName, IntToStr(Msg.Handle)]));
 
     //Ajoute le dialogue avec le HANDLE du CLIENT
-    StopDialog := FStopDialogs.AddOrReplace(Msg,FLanguageManager);
+    StopDialog := FStopDialogs.AddOrReplace(Msg, FLanguageManager);
 
     //Si le dialogue existe déjà on le remet à l'état init ?
     if (StopDialog.State = dsInit) or (StopDialog.State = dsCancel) or (StopDialog.State = dsRestarted) then begin
