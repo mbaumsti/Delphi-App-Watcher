@@ -4,7 +4,7 @@
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date     : 24/02/2025
-  Version  : 1.2
+  Version  : 1.3.2
   License  : MIT
 
   Description :
@@ -31,7 +31,8 @@
   - [23/02/2025] : Fixed missing client section loading from INI file (ClientConfig port and interval are now loaded in Agent)
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
   - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
-
+  - [25/02/2025] : v1.3.2 **Fixed issue where all applications stopped instead of only the requested one**
+  **Ensured restarted applications are launched in their original working directory**
 
   Notes :
   -------
@@ -337,9 +338,9 @@ end;
 
 procedure TFormAppWatcher.FormCreate(Sender: TObject);
 var
-    LangValue:            string;
-     Msg: string;
-    LanguageLoaded:       Boolean;
+    LangValue:      string;
+    Msg:            string;
+    LanguageLoaded: Boolean;
 begin
     //🔹 Trouver le fichier de configuration
     FLastConfigLoad := Now;
@@ -704,11 +705,10 @@ begin
 
             Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'TRY_RESTART'), [AppPath, AppParams]));
 
-            if FileExists(AppPath,true) then
+            if FileExists(AppPath, True) then
             begin
-                if ShellExecute(0, 'open', PChar(AppPath), PChar(AppParams), nil, SW_SHOWNORMAL) > 32 then
+                if ShellExecute(0, 'open', PChar(AppPath), PChar(AppParams), PChar(ExtractFilePath(AppPath)), SW_SHOWNORMAL) > 32 then
                 begin
-
                     Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'APP_RESTARTED'), [AppPath]));
                     StopForm := FormAppWatcher.FStopDialogs.FList[i].FormStop;
 
@@ -728,6 +728,7 @@ begin
             begin
                 Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'APP_NOT_FOUND'), [AppPath]));
             end;
+
         end;
     end;
 

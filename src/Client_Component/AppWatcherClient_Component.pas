@@ -4,7 +4,7 @@
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date     : 24/02/2025
-  Version  : 1.2
+  Version  : 1.3.2
   License  : MIT
 
   Description :
@@ -33,6 +33,7 @@
   - [22/02/2025] : Replaced the singleton AppLangManager with a local instance to allow multiple instances.
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
   - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
+  - [25/02/2025] : v1.3.2 **Fixed bug where all applications were stopping instead of only the requested one**
 
   *******************************************************************************)
 
@@ -147,7 +148,7 @@ end;
 
 constructor TAppWatcherClient.Create(AOwner: TComponent);
 var
-    ParentForm:      TForm;
+    ParentForm: TForm;
 begin
 
     inherited Create(AOwner);
@@ -489,13 +490,18 @@ begin
                     cmdSTOP_REQUEST:
                         begin
                             //Préparation à une demande de STOP
-                            //L'application doit renvoyer son Handle
-                            WriteMsgFormat('CLIENT', 'STOP_REQUEST', [IntToStr(Application.Handle)]);
-                            //Construire la réponse enrichie avec le Handle
+                            //Pas de réponse si la demande ne nous concerne pas
+                            if SameText(ExtractFileName(AppPath), LocalMsg.AppName) then
+                            begin
 
-                            AnswerMsg.Init(Application.Handle, cmdREPLY_STOP_REQUEST, ParamStr(0), '', LocalMsg.Duration);
-                            //Envoyer la réponse STOP à l’AGENT
-                            AnswerMsg.SendMessage(FIdTCPClient.IOHandler);
+                                //L'application doit renvoyer son Handle
+                                WriteMsgFormat('CLIENT', 'STOP_REQUEST', [IntToStr(Application.Handle)]);
+                                //Construire la réponse enrichie avec le Handle
+
+                                AnswerMsg.Init(Application.Handle, cmdREPLY_STOP_REQUEST, ParamStr(0), '', LocalMsg.Duration);
+                                //Envoyer la réponse STOP à l’AGENT
+                                AnswerMsg.SendMessage(FIdTCPClient.IOHandler);
+                            end;
                         end;
 
                 else
