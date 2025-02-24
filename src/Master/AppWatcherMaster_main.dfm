@@ -32,6 +32,16 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     Anchors = [akTop, akRight]
     Caption = 'Dur'#233'e (sec.)'
   end
+  object Splitter1: TSplitter
+    Left = 0
+    Top = 418
+    Width = 1249
+    Height = 3
+    Cursor = crVSplit
+    Align = alBottom
+    ExplicitTop = 0
+    ExplicitWidth = 421
+  end
   object BtnListApps: TButton
     Left = 1024
     Top = 80
@@ -126,14 +136,14 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
   object PanelBottom: TPanel
     AlignWithMargins = True
     Left = 0
-    Top = 320
+    Top = 421
     Width = 1009
-    Height = 371
+    Height = 270
     Margins.Left = 0
     Margins.Top = 0
     Margins.Right = 240
     Margins.Bottom = 0
-    Align = alClient
+    Align = alBottom
     BevelOuter = bvNone
     TabOrder = 9
     object LblMsg: TLabel
@@ -155,24 +165,26 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
       Left = 316
       Top = 25
       Width = 690
-      Height = 343
+      Height = 242
       Margins.Left = 6
       Margins.Top = 25
       Align = alClient
       TabOrder = 0
+      ExplicitHeight = 343
     end
     object ListViewClients: TMemo
       AlignWithMargins = True
       Left = 6
       Top = 25
       Width = 301
-      Height = 343
+      Height = 242
       Margins.Left = 6
       Margins.Top = 25
       Align = alLeft
       Lines.Strings = (
         'ListViewClients')
       TabOrder = 1
+      ExplicitHeight = 343
     end
   end
   object PanelTop: TPanel
@@ -180,14 +192,15 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     Left = 0
     Top = 0
     Width = 1009
-    Height = 320
+    Height = 418
     Margins.Left = 0
     Margins.Top = 0
     Margins.Right = 240
     Margins.Bottom = 0
-    Align = alTop
+    Align = alClient
     BevelOuter = bvNone
     TabOrder = 10
+    ExplicitHeight = 320
     object LblAppList: TLabel
       Left = 10
       Top = 3
@@ -200,7 +213,7 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
       Left = 3
       Top = 25
       Width = 1003
-      Height = 292
+      Height = 390
       Margins.Top = 25
       Align = alClient
       ColCount = 6
@@ -214,6 +227,7 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
       OnDrawCell = StringGridAppDrawCell
       OnFixedCellClick = StringGridAppFixedCellClick
       OnMouseMove = StringGridAppMouseMove
+      ExplicitHeight = 292
       ColWidths = (
         105
         130

@@ -1,10 +1,10 @@
 ﻿(*******************************************************************************
   Project : AppWatcher
   Unit    : AppWatcherMaster_main.pas
-  Author   : mbaumsti
-  GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 24/02/2025
-  Version : 1.2
+  Author  : mbaumsti
+  GitHub  : https://github.com/mbaumsti/Delphi-App-Watcher.git
+  Date    : 24/02/2025
+  Version : 1.3.0
   License : MIT
 
   Description :
@@ -21,20 +21,23 @@
   - Interactive column sorting with `OnFixedCellClick`
   - Application selection via `OnDblClick`
   - Thread-safe UI updates using `TThread.Queue`
+  - **Added Splitter for UI improvement**
+  - **Fixed sorting issue in column headers**
 
   Change Log :
   ------------
   - [09/02/2025] : Initial creation
   - [18/02/2025] : Added column sorting feature
   - [20/02/2025] : Implemented thread-safe access control
-  - [21/02/2025] : Improved INI file handling in FormCreate :  Ensured `FindConfigPath` checks file existence before loading.
-  - [22/02/2025] : Replaced the singleton AppLangManager with a local instance to allow multiple instances.
-  - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
-  - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
+  - [21/02/2025] : Improved INI file handling in FormCreate
+  - [22/02/2025] : Replaced singleton `AppLangManager` with local instances
+  - [23/02/2025] : v1.1 Added dynamic application title translation
+  - [23/02/2025] : v1.2 Improved configuration file lookup with shortcut resolution
+  - [24/02/2025] : **v1.3 Fixed sorting issue + Added Splitter for better UI**
 
   Note :
   -------
-  This project is open-source. Contributions and improvements are welcome!
+  This project is open-source. Contributions are welcome!
   *******************************************************************************)
 
 unit AppWatcherMaster_main;
@@ -85,6 +88,7 @@ type
         StringGridApp: TStringGrid;
         BtnAgentStop: TButton;
         TimerupdateClient: TTimer;
+        Splitter1: TSplitter;
         procedure BtnAgentStopClick(Sender: TObject);
         procedure BtnCancelClick(Sender: TObject);
         procedure FormCreate(Sender: TObject);
@@ -400,14 +404,23 @@ begin
                         If Result = 0 then
                             Result := Left.AppHandle - Right.AppHandle;
                     end;
+
                 2: begin
+                        Result := CompareText(Left.UserName, Right.UserName);
+                        If Result = 0 then
+                            Result := CompareText(Left.AppName, Right.AppName);
+                        If Result = 0 then
+                            Result := Left.AppHandle - Right.AppHandle;
+                    end;
+
+                3: begin
                         Result := CompareText(Left.AppName, Right.AppName);
                         If Result = 0 then
                             Result := Left.AppHandle - Right.AppHandle;
                     end;
-                3:
+                4:
                     Result := Left.AppHandle - Right.AppHandle;
-                4: begin
+                5: begin
                         Result := CompareText(Left.AppPath, Right.AppPath);
                         if Result = 0 then
                             Result := CompareText(Left.ClientName, Right.ClientName);
@@ -449,7 +462,7 @@ begin
     //FAppListLock.Enter;
     try
         begin
-            MemoLogs.Lines.Add('Clique col' + ACol.ToString);
+            //MemoLogs.Lines.Add('Clique col' + ACol.ToString);
             SortGrid(ACol); //Trie en fonction de la colonne
 
         end;

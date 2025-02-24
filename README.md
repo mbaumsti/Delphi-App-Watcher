@@ -1,7 +1,13 @@
 # 🚀 AppWatcher - Remote Application Management for Developers  
 
-AppWatcher is a **remote application management tool** designed for **developers and IT admins** who need to **stop, replace, and restart applications on multiple machines**—without using RDP or manually accessing each computer.  
+**AppWatcher** is a **Delphi component** that allows an application to be **remotely controlled** by a dedicated **supervisor** application, included in the solution.  
 
+It is designed for **developers and IT administrators** who need to **gracefully stop**,  
+**replace**, and **restart applications** across multiple machines, without using **RDP** or manually accessing each computer.
+
+	
+
+**✅ Developed in Delphi 12.2**  
 
 ## ⭐ Why Use AppWatcher?  
 
