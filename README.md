@@ -1,15 +1,13 @@
-# 🚀 AppWatcher - Remote Application Management for Developers  
+# 🚀 AppWatcher - Remote Application Management for Developers
 
 **AppWatcher** is a **Delphi component** that allows an application to be **remotely controlled** by a dedicated **supervisor** application, included in the solution.  
 
 It is designed for **developers and IT administrators** who need to **gracefully stop**,  
 **replace**, and **restart applications** across multiple machines, without using **RDP** or manually accessing each computer.
 
-	
-
 **✅ Developed in Delphi 12.2**  
 
-## ⭐ Why Use AppWatcher?  
+## ⭐ Why Use AppWatcher?
 
 ✔️ **Easily stop running applications on remote machines**  
 ✔️ **Deploy application updates with minimal disruption to users**  
@@ -17,8 +15,8 @@ It is designed for **developers and IT administrators** who need to **gracefully
 ✔️ **Restart applications automatically after an update**  
 ✔️ **Avoid using RDP (Remote Desktop) or physically moving between machines**  
 ✔️ **Minimize downtime and streamline the deployment process**  
- 
-## 🚀 Features  
+
+## 🚀 Features
 
 ✅ **Stop applications remotely** with a simple command.  
 ✅ **Define a countdown before stopping an application** to notify users.  
@@ -28,11 +26,12 @@ It is designed for **developers and IT administrators** who need to **gracefully
 ✅ **Indy TCP/IP communication** for secure messaging.  
 ✅ **Lightweight and efficient**—does not require admin privileges.   
 
-## 🛠️ How It Works  
+## 🛠️ How It Works
 
 AppWatcher consists of **three main components**:  
 
 1. **🖥️ AppWatcher Master** – The **central server** that:  
+   
    - Communicates with all **Agents** and keeps track of their presence.  
    - Lists all **applications managed by the Agents** (i.e., applications using the `TAppWatcherClient` component).  
    - Allows administrators to **remotely stop applications**, while giving users a countdown before shutdown.  
@@ -41,12 +40,14 @@ AppWatcher consists of **three main components**:
    - Can request all **Agents to shut down**.  
 
 2. **🖥️ AppWatcher Agent** – A **lightweight service** running on remote machines that:  
+   
    - Listens for **commands** from the Master.  
    - Communicates with **local applications** using the AppWatcher Client component.  
    - Notifies users and requests applications to **stop** when an update is needed.  
    - Maintains a **local list of applications** to restart after an update.  
 
 3. **🖥️ AppWatcher Client Component** – A **Delphi component (`TAppWatcherClient`)** that:  
+   
    - Allows an application to **communicate with the local Agent** with minimal programming effort.  
    - Handles **STOP requests** requested by the Master and transmitted by the Agent.  
    - Gives the developer control over whether to **accept or refuse** the STOP request, based on the application's state.  
@@ -54,12 +55,9 @@ AppWatcher consists of **three main components**:
    - Ensures a **clean shutdown and possible restart after an update**.  
    - Simplifies integration of AppWatcher into Delphi applications with minimal coding.  
 
+## 📦 Installation
 
-
-
-## 📦 Installation  
-
-### 🔹 **1. Setting Up the Master Server**  
+### 🔹 **1. Setting Up the Master Server**
 
 - Run `AppWatcherMaster.exe` on the machine that will act as the **control center**.  
 - The **Master automatically updates its IP address** in the `AppWatcher.ini` file.  
@@ -67,7 +65,7 @@ AppWatcher consists of **three main components**:
 - **No manual configuration** is needed unless you want to change the default port.  
 - The **last Master started on the network takes control**.  
 
-### 🔹 **2. Deploying the Agent on Remote Machines**  
+### 🔹 **2. Deploying the Agent on Remote Machines**
 
 - Copy `AppWatcherAgent.exe` to all machines that need remote control.  
 - Run the **Agent**, and it will appear as an **icon in the system tray** (notification area).  
@@ -78,25 +76,27 @@ AppWatcher consists of **three main components**:
 - **Closing the log window using the "X" button does not stop the Agent** – it simply hides the window.  
 - To **fully exit the Agent**, hold **SHIFT + CONTROL** while clicking the "X" button to display the password prompt.  
 - The Agent **automatically reads the INI file** to locate the active Master.  
-  
 
-### 🔹 **3. Integrating the Client Component in Your Delphi Application**  
+### 🔹 **3. Integrating the Client Component in Your Delphi Application**
 
 To make a **Delphi application controllable** by AppWatcher, follow these steps:  
 
 1. **Install the `TAppWatcherClient` Component**:  
+   
    - Open `AppWatcherClientPackage.dproj` in Delphi.  
    - Compile and install the package.  
    - Add the component's source path to **Delphi's library paths** (Tools → Options → Library → Library Path).  
 
 2. **Add `TAppWatcherClient` to Your Applications**:  
+   
    - Place a `TAppWatcherClient` component on main form in all applications you want to manage.  
    - The component allows the application to communicate with the local Agent and respond to STOP commands.  
 
 3. **Handle STOP Requests** (Prevent shutdown if needed):  
+   
    - Implement the `OnStopRequested` event to **prevent the application from closing** if, for example, it has unsaved data.  
    - Example:  
-
+   
    ```delphi
    procedure TFormMain.AppWatcherClient1StopRequested(Sender: TObject; var CanStop: Boolean);
    begin
@@ -107,22 +107,22 @@ To make a **Delphi application controllable** by AppWatcher, follow these steps:
    end; 
    ```
 
-
 4. **Define Restart Parameters** (Command-line arguments for relaunching the app):
-
+   
    - Use the OnGetAppParams event to send command-line parameters that the Agent should use when restarting the application.
    - Example:  
-
-   ```delphi
-	procedure TFormMain.AppWatcherClient1GetAppParams(Sender: TObject; var Params: string);
-	begin
-		Params:='';
-		if TestMode then
-			Params := '/Mode=test';  // Example parameter
-	end;   
-	```
    
-### 🔹 **4. Managing Configuration Files (`.ini`)**  
+   ```delphi
+    procedure TFormMain.AppWatcherClient1GetAppParams(Sender: TObject; var Params: string);
+    begin
+        Params:='';
+        if TestMode then
+            Params := '/Mode=test';  // Example parameter
+    end;   
+   ```
+
+### 🔹 **4. Managing Configuration Files (`.ini`)**
+
 AppWatcher **relies on INI files** for configuration. These files must be **accessible to the application** to ensure proper operation.  
 
 📌 Where does AppWatcher look for INI files?
@@ -134,7 +134,7 @@ AppWatcher **relies on INI files** for configuration. These files must be **acce
 
 ---
 
-### 🔹 **5. Test Application `AppWatcherClient.dproj`**  
+### 🔹 **5. Test Application `AppWatcherClient.dproj`**
 
 The `AppWatcherClient.dproj` application is provided to **test the integration** of the `TAppWatcherClient` component **without modifying your own application**.  
 
@@ -150,10 +150,12 @@ The `AppWatcherClient.dproj` application is provided to **test the integration**
 This tool allows you to **test AppWatcher’s functionality** before integrating `TAppWatcherClient` into your final applications. 🚀 
 
 ## Assets
+
 🖼 Icons Attribution:
 
 Some icons used in this project are from [Icons8](https://icons8.com).
 As per Icons8's licensing, attribution is required unless you have a paid subscription.
 
+## Changelog
 
-
+ The full version history is available in [Changelog.md](CHANGELOG.md).

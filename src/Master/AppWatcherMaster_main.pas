@@ -3,8 +3,8 @@
   Unit    : AppWatcherMaster_main.pas
   Author  : mbaumsti
   GitHub  : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date    : 24/02/2025
-  Version : 1.3.0
+  Date    : 28/02/2025
+  Version : 1.3.2
   License : MIT
 
   Description :
@@ -33,7 +33,9 @@
   - [22/02/2025] : Replaced singleton `AppLangManager` with local instances
   - [23/02/2025] : v1.1 Added dynamic application title translation
   - [23/02/2025] : v1.2 Improved configuration file lookup with shortcut resolution
-  - [24/02/2025] : **v1.3 Fixed sorting issue + Added Splitter for better UI**
+  - [24/02/2025] : v1.3 Fixed sorting issue + Added Splitter for better UI
+  - [27/02/2025] : v1.3.3 Enhanced graceful shutdown of Indy server
+  - [28/02/2025] : v1.3.4 Added application filters for better usability
 
   Note :
   -------
@@ -49,9 +51,9 @@ uses
     Vcl.Controls, Vcl.Forms, Vcl.Dialogs, IdBaseComponent, IdComponent, System.Generics.Collections,
     IdCustomTCPServer, IdTCPServer, IdContext, Vcl.StdCtrls, Vcl.ComCtrls, System.SyncObjs,
     AppWatcher_ioHandler, Vcl.Mask, RzEdit, AppWatcher_Lang, Vcl.ExtCtrls, IdStack, System.Generics.Defaults,
-    Vcl.Grids, System.IniFiles, Winapi.WinSock, IdScheduler,
+    Vcl.Grids, System.IniFiles, Winapi.WinSock, IdScheduler, System.strutils, System.Math,
     IdSchedulerOfThread, IdSchedulerOfThreadPool, IdGlobal,
-    AppWatcher_consts;
+    AppWatcher_consts, System.RegularExpressions;
 
 type
     TAppRec = record
@@ -106,12 +108,18 @@ type
         procedure StringGridAppDrawCell(Sender: TObject; ACol, ARow: LongInt; Rect:
             TRect; State: TGridDrawState);
         procedure StringGridAppFixedCellClick(Sender: TObject; ACol, ARow: LongInt);
+        procedure StringGridAppKeyDown(Sender: TObject; var Key: Word; Shift:
+            TShiftState);
+        procedure StringGridAppKeyPress(Sender: TObject; var Key: Char);
         procedure StringGridAppMouseMove(Sender: TObject; Shift: TShiftState; X, Y:
             Integer);
+        procedure StringGridAppSetEditText(Sender: TObject; ACol, ARow: LongInt; const
+            Value: string);
         procedure TimerupdateClientTimer(Sender: TObject);
     private
         {Déclarations privées}
         FSortColumn:                Integer;
+        FSelColumn:                 Integer;
         FSortAscending:             Boolean;
         FIsFirstLoad:               Boolean;
         FLang:                      TAppWatcherLang;
@@ -126,6 +134,7 @@ type
         procedure SendMessageToClients(Msg: TAppWatcherMessage);
         procedure UpdateStringGrid;
         procedure SortGrid(Column: Integer);
+        procedure CloseServer;
     public
         {Déclarations publiques}
     end;
@@ -228,6 +237,8 @@ var
 begin
     DoClose := False;
     FIsFirstLoad := True;
+    FSelColumn := 0;
+    FSortColumn := 0;
 
     try
         //🔹 Vérification des paramètres en ligne de commande (--lang fr ou --lang en)
@@ -309,14 +320,43 @@ begin
     end;
 end;
 
+procedure TFormAppWatcherMaster.CloseServer;
+var
+    Context:     TIdContext;
+    ContextList: TList<TIdContext>;
+begin
+    //🔹 Empêcher de nouvelles connexions
+    IdTCPServer1.StopListening;
+
+    //🔹 Fermer toutes les connexions en cours
+    ContextList := TList<TIdContext>(IdTCPServer1.Contexts.LockList);
+    try
+        for Context in ContextList do
+        begin
+            try
+                    Context.Connection.Disconnect;
+            except
+                //Ignorer toute exception lors de la fermeture
+            end;
+        end;
+    finally
+            IdTCPServer1.Contexts.UnlockList;
+    end;
+
+    //🔹 Désactiver le serveur une fois que tout est terminé
+    IdTCPServer1.Active := False;
+end;
+
 procedure TFormAppWatcherMaster.FormClose(Sender: TObject; var Action: TCloseAction);
 var
     ClientIp: string;
     Context:  TIdContext;
 
 begin
-    //2️⃣ Désactiver le serveur proprement
-    IdTCPServer1.Active := False;
+    TimerupdateClient.enabled := False;
+    //🔴 Arrêt propre du serveur avant destruction
+    CloseServer;
+
     FAppListLock.Enter; //🔒 Bloque l'accès pendant la destruction
     try
             FAppList.Free;
@@ -329,9 +369,39 @@ begin
     FreeAndNil(FLanguageManager);
 end;
 
+Function SQLLike(Const Pattern, Text: String): Boolean;
+Var
+    RegexPattern: String;
+Begin
+    if (trim(Pattern) = '') or (trim(Pattern) = '%') then
+        exit(True);
+
+    RegexPattern := '^' + TRegEx.Escape(Pattern) + '$';
+    RegexPattern := ReplaceStr(RegexPattern, '\%', '\x01');
+    RegexPattern := ReplaceStr(RegexPattern, '\_', '\x02');
+    RegexPattern := ReplaceStr(RegexPattern, '%', '.*');
+    RegexPattern := ReplaceStr(RegexPattern, '_', '.');
+    RegexPattern := ReplaceStr(RegexPattern, '\x01', '%');
+    RegexPattern := ReplaceStr(RegexPattern, '\x02', '_');
+
+    Result := TRegEx.IsMatch(Text, RegexPattern, [roIgnoreCase]);
+End;
+
 procedure TFormAppWatcherMaster.UpdateStringGrid;
 var
-    I: Integer;
+    idxGrid, idxApp, FilteredCount: Integer;
+
+    function filterAccept(I: Integer): Boolean;
+    begin
+        Result := SQLLike(StringGridApp.Cells[0, 1], FAppList[I].ClientIp) and
+            SQLLike(StringGridApp.Cells[1, 1], FAppList[I].ClientName) and
+            SQLLike(StringGridApp.Cells[2, 1], FAppList[I].UserName) and
+            SQLLike(StringGridApp.Cells[3, 1], FAppList[I].AppName) and
+            SQLLike(StringGridApp.Cells[4, 1], FAppList[I].AppHandle.ToString) and
+            SQLLike(StringGridApp.Cells[5, 1], FAppList[I].AppPath)
+            ;
+    end;
+
 begin
     //Désactiver les mises à jour visuelles pendant la mise à jour du contenu
     StringGridApp.BeginUpdate;
@@ -344,24 +414,37 @@ begin
             if FAppList.Count = 0 then
             begin
                 StringGridApp.RowCount := 2;
-                StringGridApp.Rows[1].Clear; //Garde une ligne vide si la liste est vide
+                //StringGridApp.Rows[1].Clear; //Garde une ligne vide si la liste est vide
                 exit;
             end;
 
-            //🔢 Ajuster dynamiquement RowCount
-            StringGridApp.RowCount := FAppList.Count + 1; //+1 pour l'en-tête
+            //🔹 Étape 1 : Compter combien de lignes seront affichées après filtrage
+            FilteredCount := 0;
+            for idxApp := 0 to FAppList.Count - 1 do
+                if filterAccept(idxApp) then
+                    Inc(FilteredCount);
+
+            //🔹 Étape 2 : Définir RowCount en une seule fois
+            StringGridApp.RowCount := Max(2, FilteredCount + 2); //+2 pour les en-têtes et filtres
 
             //Remplit le `StringGrid` avec les données triées
-            for I := 0 to FAppList.Count - 1 do
+            idxGrid := 2;
+            for idxApp := 0 to FAppList.Count - 1 do
             begin
-                StringGridApp.Cells[0, I + 1] := FAppList[I].ClientIp;
-                StringGridApp.Cells[1, I + 1] := FAppList[I].ClientName;
-                StringGridApp.Cells[2, I + 1] := FAppList[I].UserName;
+                if filterAccept(idxApp) then begin
+                    StringGridApp.Cells[0, idxGrid] := FAppList[idxApp].ClientIp;
+                    StringGridApp.Cells[1, idxGrid] := FAppList[idxApp].ClientName;
+                    StringGridApp.Cells[2, idxGrid] := FAppList[idxApp].UserName;
 
-                StringGridApp.Cells[3, I + 1] := FAppList[I].AppName;
-                StringGridApp.Cells[4, I + 1] := FAppList[I].AppHandle.ToString;
-                StringGridApp.Cells[5, I + 1] := FAppList[I].AppPath;
+                    StringGridApp.Cells[3, idxGrid] := FAppList[idxApp].AppName;
+                    StringGridApp.Cells[4, idxGrid] := FAppList[idxApp].AppHandle.ToString;
+                    StringGridApp.Cells[5, idxGrid] := FAppList[idxApp].AppPath;
+                    Inc(idxGrid);
+                end;
             end;
+
+            StringGridApp.Row := 1; //Repositionne sur la ligne de filtrage après tri
+            StringGridApp.Col := FSelColumn; //Garde la colonne sélectionnée
         finally
                 FAppListLock.Leave; //🔓 Libère le verrou après mise à jour
         end;
@@ -439,6 +522,44 @@ begin
     UpdateStringGrid;
 end;
 
+procedure TFormAppWatcherMaster.StringGridAppKeyDown(Sender: TObject; var Key:
+    Word; Shift: TShiftState);
+var
+    I: Integer;
+begin
+    if (Key = VK_ESCAPE) and (StringGridApp.Row = 1) then
+    begin
+        for I := 0 to StringGridApp.ColCount - 1 do
+            StringGridApp.Cells[I, 1] := ''; //Efface toutes les cellules de la ligne de filtre
+        UpdateStringGrid;
+    end;
+    if (Key = VK_RETURN) and (StringGridApp.Row = 1) then
+    begin
+        UpdateStringGrid;
+    end;
+
+    if StringGridApp.Row <> 1 then
+    begin
+        Key := 0;
+    end;
+end;
+
+procedure TFormAppWatcherMaster.StringGridAppKeyPress(Sender: TObject; var Key:
+    Char);
+begin
+    if StringGridApp.Row <> 1 then
+    begin
+        Key := #0;
+    end;
+end;
+
+procedure TFormAppWatcherMaster.StringGridAppSetEditText(Sender: TObject; ACol,
+    ARow: LongInt; const Value: string);
+begin
+    if ARow = 1 then
+        FSelColumn := ACol;
+end;
+
 procedure TFormAppWatcherMaster.StringGridAppDblClick(Sender: TObject);
 var
     SelectedRow: Integer;
@@ -448,9 +569,6 @@ begin
     //Vérifie que l'utilisateur ne clique pas sur l'en-tête (ligne 0)
     if (SelectedRow > 0) and (SelectedRow < StringGridApp.RowCount) then
     begin
-        //MemoLogs.Lines.Add('Double-clic sur la ligne ' + SelectedRow.ToString);
-        //MemoLogs.Lines.Add('Client IP: ' + StringGridApp.Cells[0, SelectedRow]);
-        //MemoLogs.Lines.Add('App Name: ' + StringGridApp.Cells[2, SelectedRow]);
         EditAppName.Text := StringGridApp.Cells[3, SelectedRow];
     end;
 end;
@@ -462,9 +580,7 @@ begin
     //FAppListLock.Enter;
     try
         begin
-            //MemoLogs.Lines.Add('Clique col' + ACol.ToString);
             SortGrid(ACol); //Trie en fonction de la colonne
-
         end;
     finally
         //FAppListLock.Leave;
@@ -473,15 +589,53 @@ end;
 
 procedure TFormAppWatcherMaster.StringGridAppDrawCell(Sender: TObject; ACol,
     ARow: LongInt; Rect: TRect; State: TGridDrawState);
+var
+    TextRect:       TRect;
+    Flags:          Integer;
+    I:              Integer;
+    posLeft:        Integer;
+    IsFilterActive: Boolean;
+    CellText:       string;
 begin
+    //Récupérer le texte de la cellule
+    CellText := StringGridApp.Cells[ACol, ARow];
+
     if ARow = 0 then //Si c'est la ligne d'en-tête
     begin
         StringGridApp.Canvas.Brush.Color := clGray; //Fond gris
         StringGridApp.Canvas.Font.Color := clWhite; //Texte blanc
         StringGridApp.Canvas.Font.Style := [fsBold]; //Texte en gras
-        StringGridApp.Canvas.FillRect(Rect); //Remplissage du fond
-        StringGridApp.Canvas.TextOut(Rect.Left + 5, Rect.Top + 5, StringGridApp.Cells[ACol, ARow]);
+
+    end else if ARow = 1 then //Si c'est la ligne de filtres
+    begin
+        //Vérifier si un filtre est appliqué
+        IsFilterActive := StringGridApp.Cells[ACol, 1] <> '';
+        StringGridApp.Canvas.Font.Style := []; //Texte normal
+
+        if IsFilterActive then begin
+            StringGridApp.Canvas.Brush.Color := clWebOrange; //Filtre actif
+            StringGridApp.Canvas.Font.Color := clWhite; //Texte noir
+
+        end else begin
+            StringGridApp.Canvas.Brush.Color := clInfoBk; //Filtre inactif
+            StringGridApp.Canvas.Font.Color := clBlack; //Texte noir
+        end;
+
+    end else //Contenu normal
+    begin
+        StringGridApp.Canvas.Font.Style := []; //Texte normal
+        StringGridApp.Canvas.Brush.Color := clWhite;
+        StringGridApp.Canvas.Font.Color := clBlack;
     end;
+
+    //Centrage vertical du texte avec `DrawText`
+    TextRect := Rect;
+    Inc(TextRect.Left, 6);
+    Flags := DT_LEFT or DT_VCENTER or DT_SINGLELINE;
+
+    StringGridApp.Canvas.FillRect(Rect); //Remplissage du fond
+    DrawText(StringGridApp.Canvas.Handle, PChar(CellText), Length(CellText), TextRect, Flags);
+
 end;
 
 procedure TFormAppWatcherMaster.UpdateUI;
@@ -616,7 +770,7 @@ var
     Msg:     TAppWatcherMessage;
     AppName: string;
 begin
-    AppName := Trim(EditAppName.Text);
+    AppName := trim(EditAppName.Text);
     if AppName = '' then
     begin
         MemoLogs.Lines.Add(FLanguageManager.GetMessage('MASTER', 'ENTER_PROGRAM_NAME'));
@@ -679,6 +833,7 @@ var
     ReceivedMsg: TAppWatcherMessage;
 
 begin
+
     try
         if not ReadMessage(AContext.Connection.IOHandler, ReceivedMsg) then begin
             sleep(300);
