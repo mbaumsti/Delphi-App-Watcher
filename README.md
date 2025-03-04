@@ -9,6 +9,8 @@ It is designed for **developers and IT administrators** who need to **gracefully
 
 **✅ Developed in Delphi 12.2**  
 
+![AppWatcherMaster](https://github.com/user-attachments/assets/2dbf9493-cf99-4e80-9a3a-c18da6426e8f)
+
 ---
 
 ## ⭐ Why Use AppWatcher?
