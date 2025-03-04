@@ -1,11 +1,15 @@
 # 🚀 AppWatcher - Remote Application Management for Developers
 
+[Cette page en Français](https://github.com/mbaumsti/Delphi-App-Watcher/tree/main/LISEZ_MOI.md)
+
 **AppWatcher** is a **Delphi component** that allows an application to be **remotely controlled** by a dedicated **supervisor** application, included in the solution.  
 
 It is designed for **developers and IT administrators** who need to **gracefully stop**,  
 **replace**, and **restart applications** across multiple machines, without using **RDP** or manually accessing each computer.
 
 **✅ Developed in Delphi 12.2**  
+
+---
 
 ## ⭐ Why Use AppWatcher?
 
@@ -16,6 +20,8 @@ It is designed for **developers and IT administrators** who need to **gracefully
 ✔️ **Avoid using RDP (Remote Desktop) or physically moving between machines**  
 ✔️ **Minimize downtime and streamline the deployment process**  
 
+---
+
 ## 🚀 Features
 
 ✅ **Stop applications remotely** with a simple command.  
@@ -24,7 +30,9 @@ It is designed for **developers and IT administrators** who need to **gracefully
 ✅ **Multi-language support** (French & English).  
 ✅ **Configurable settings** via INI files.  
 ✅ **Indy TCP/IP communication** for secure messaging.  
-✅ **Lightweight and efficient**—does not require admin privileges.   
+✅ **Lightweight and efficient**—does not require admin privileges. 
+
+---
 
 ## 🛠️ How It Works
 
@@ -53,7 +61,9 @@ AppWatcher consists of **three main components**:
    - Gives the developer control over whether to **accept or refuse** the STOP request, based on the application's state.  
    - Provides **command-line parameters** that the Agent will use when restarting the application.  
    - Ensures a **clean shutdown and possible restart after an update**.  
-   - Simplifies integration of AppWatcher into Delphi applications with minimal coding.  
+   - Simplifies integration of AppWatcher into Delphi applications with minimal coding.
+   - 
+---
 
 ## 📦 Installation
 
@@ -123,6 +133,8 @@ To make a **Delphi application controllable** by AppWatcher, follow these steps:
             Params := '/Mode=test';  // Example parameter
     end;   
    ```
+   
+---
 
 ### 🔹 **4. Managing Configuration Files (`.ini`)**
 
@@ -152,12 +164,16 @@ The `AppWatcherClient.dproj` application is provided to **test the integration**
 
 This tool allows you to **test AppWatcher’s functionality** before integrating `TAppWatcherClient` into your final applications. 🚀 
 
+---
+
 ## Assets
 
 🖼 Icons Attribution:
 
 Some icons used in this project are from [Icons8](https://icons8.com).
 As per Icons8's licensing, attribution is required unless you have a paid subscription.
+
+---
 
 ## Changelog
 
