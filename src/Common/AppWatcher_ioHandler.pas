@@ -4,7 +4,7 @@
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date     : 24/02/2025
-  Version  : 1.2
+  Version  : 2.0.0
   License  : MIT
 
   Description :
@@ -25,81 +25,90 @@
   - [12/02/2025] : Added support for `STOP_REQUEST` and `REPLY_STOP_REQUEST` commands
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
   - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
+  - [06/03/2025] : v2.0 - Improved 32/64 bit compatibility:
+                          * Handle changed from HWnd to UINT64.
+                          * Added packed on TAppWatcherMessage
+                          !!! This change makes the version incompatible with v1 !!!
+                        - Minor modification : Replaced TAppWatcherStrCommand with GetEnumName(TypeInfo(TAppWatcherCommand)
+                        - Minor modification : Added GetCmdName function
+
 
 *******************************************************************************)
 
-unit AppWatcher_ioHandler;
+Unit AppWatcher_ioHandler;
 
-interface
+Interface
 
-uses windows,  System.Classes, System.SysUtils,IdTCPClient, IdTCPConnection, IdComponent, IdGlobal,
-    IdBaseComponent,IdIOHandler,dialogs;
+Uses windows, System.Classes, System.SysUtils, System.TypInfo, IdTCPClient, IdTCPConnection, IdComponent, IdGlobal,
+    IdBaseComponent, IdIOHandler, dialogs;
 
-type
-  TAppWatcherCommand = (cmdUnknown, cmdACK, cmdNACK, cmdSTOP, cmdWHO,cmdWHO_REPLY, cmdSTART, cmdCANCEL,cmdSTOP_REQUEST,cmdREPLY_STOP_REQUEST,cmdSTOP_AGENT);
+Type
+    TAppWatcherCommand = (cmdUNKNOWN, cmdACK, cmdNACK, cmdSTOP, cmdWHO, cmdWHO_REPLY, cmdSTART, cmdCANCEL, cmdSTOP_REQUEST, cmdREPLY_STOP_REQUEST, cmdSTOP_AGENT);
 
-  TAppWatcherMessage = record
-    Command: TAppWatcherCommand; // Enum
-    UserName : String[255]; //Nom de l'utilisateur
-    Handle : HWnd;
-    AppName: string[255];  // Nom
-    AppPath: string[255];  // Chemin complet
-    Params: string[255];   // Arguments
-    Duration: Integer;     // Temps avant arrêt
-    procedure Clear;
-    procedure Init(AHandle: HWnd; ACommand :TAppWatcherCommand;AAppPath ,AParams : string; ADuration : integer  );
-    procedure SendMessage(AIOHandler: TIdIOHandler);
-    Function CmdName : string;
-  end;
+    TAppWatcherMessage = Packed Record
+        //  TAppWatcherMessage = record
+        Command: TAppWatcherCommand; // Enum
+        UserName: String[255]; //Nom de l'utilisateur
+        Handle: UInt64; // 🔹 Taille fixe pour compatibilité 32/64 bits au lieu de HWnd;
+        //    Handle : HWnd;
+        AppName: String[255]; // Nom
+        AppPath: String[255]; // Chemin complet
+        Params: String[255]; // Arguments
+        Duration: Integer; // Temps avant arrêt
+        Procedure Clear;
+        Procedure Init(AHandle: HWnd; ACommand: TAppWatcherCommand; AAppPath, AParams: String; ADuration: integer);
+        Procedure SendMessage(AIOHandler: TIdIOHandler);
+        Function CmdName: String;
+    End;
 
-  function ReadMessage(AIOHandler: TIdIOHandler; out Msg: TAppWatcherMessage): Boolean;
+Function ReadMessage(AIOHandler: TIdIOHandler; Out Msg: TAppWatcherMessage): Boolean;
+Function GetCmdName(ACmd: TAppWatcherCommand): String;
 
-const
-  TAppWatcherStrCommand: array[0..10] of string =
-    ('UNKNOWN', 'ACK', 'NACK', 'STOP', 'WHO','WHO_REPLY', 'START', 'CANCEL', 'STOP_REQUEST', 'REPLY_STOP_REQUEST','STOP_AGENT');
-
-implementation
+Implementation
 
 //Renvoi le nom de l'utilisateur courant
-function CurUSer: string;
-var
-    u:  array [0 .. 127] of Char;
+Function CurUSer: String;
+Var
+    u: Array[0..127] Of Char;
     sz: DWORD;
-begin
+Begin
     sz := sizeof(u);
     GetUserName(u, sz);
     Result := uppercase(u);
-end;
-
-procedure TAppWatcherMessage.Clear;
-begin
-  Self := Default(TAppWatcherMessage);
-end;
-
-Function TAppWatcherMessage.CmdName : string;
-begin
-   Result:=  TAppWatcherStrCommand[ord(Command)];
-end;
-
-procedure TAppWatcherMessage.Init(AHandle: HWnd;ACommand :TAppWatcherCommand;AAppPath ,AParams : string; ADuration : integer  );
-Begin
-  Handle := AHandle;
-  Command:=ACommand;
-  AppPath:=AAppPath;
-  AppName:= ExtractFileName(AppPath );
-  Params:=AParams;
-  Duration:=ADuration;
-  UserName:=CurUser;
 End;
 
-procedure TAppWatcherMessage.SendMessage(AIOHandler: TIdIOHandler);
-var
+Function GetCmdName(ACmd: TAppWatcherCommand): String;
+Begin
+    Result := Copy(GetEnumName(TypeInfo(TAppWatcherCommand), Ord(ACmd)), Length('cmd') + 1);
+End;
+
+Procedure TAppWatcherMessage.Clear;
+Begin
+    Self := Default(TAppWatcherMessage);
+End;
+
+Function TAppWatcherMessage.CmdName: String;
+Begin
+    Result := GetCmdName(Command);
+End;
+
+Procedure TAppWatcherMessage.Init(AHandle: HWnd; ACommand: TAppWatcherCommand; AAppPath, AParams: String; ADuration: integer);
+Begin
+    Handle := AHandle;
+    Command := ACommand;
+    AppPath := AAppPath;
+    AppName := ExtractFileName(AppPath);
+    Params := AParams;
+    Duration := ADuration;
+    UserName := CurUser;
+End;
+
+Procedure TAppWatcherMessage.SendMessage(AIOHandler: TIdIOHandler);
+Var
     MsgSize: Int32;
     Buffer: TIdBytes;
-begin
-    if not Assigned(AIOHandler) then Exit;
-
-//    MessageDlg(paramstr(0)+' - Duration='+Duration.ToString,mtInformation,[mbok],0);
+Begin
+    If Not Assigned(AIOHandler) Then Exit;
 
     // Calcul de la taille du message
     MsgSize := SizeOf(Self);
@@ -114,39 +123,38 @@ begin
     Move(Self, Buffer[SizeOf(Int32)], MsgSize);
 
     // Envoyer le buffer complet
-    AIOHandler.Write(Buffer,SizeOf(Int32) + MsgSize);
+    AIOHandler.Write(Buffer, SizeOf(Int32) + MsgSize);
     AIOHandler.WriteBufferFlush;
-end;
+End;
 
-function ReadMessage(AIOHandler: TIdIOHandler; out Msg: TAppWatcherMessage): Boolean;
-var
+Function ReadMessage(AIOHandler: TIdIOHandler; Out Msg: TAppWatcherMessage): Boolean;
+Var
     MsgSize: Int32;
-    Buffer:  TIdBytes;
-    i:       Integer;
+    Buffer: TIdBytes;
+    i: Integer;
     ByteVal: Byte;
-begin
+Begin
     Result := False;
     Msg.Clear;
 
-    if not Assigned(AIOHandler) or not AIOHandler.Connected then Exit;
+    If Not Assigned(AIOHandler) Or Not AIOHandler.Connected Then Exit;
 
-    try
+    Try
         // 🔍 Vérifier qu’au moins 4 octets sont disponibles pour la taille
-        if AIOHandler.InputBuffer.Size < SizeOf(Int32) then Exit;
+        If AIOHandler.InputBuffer.Size < SizeOf(Int32) Then Exit;
 
         // 🔎 Lire chaque octet de la taille avec PeekByte (sans consommer)
         MsgSize := 0;
-        for i := 0 to 3 do
-        begin
+        For i := 0 To 3 Do Begin
             ByteVal := AIOHandler.InputBuffer.PeekByte(i);
-            MsgSize := MsgSize or (ByteVal shl (i * 8));  // Reconstruction de l'Int32
-        end;
+            MsgSize := MsgSize Or (ByteVal Shl (i * 8)); // Reconstruction de l'Int32
+        End;
 
         // 🚨 Vérifier que la taille est correcte
-        if MsgSize <> SizeOf(TAppWatcherMessage) then Exit;
+        If MsgSize <> SizeOf(TAppWatcherMessage) Then Exit;
 
         // 🛑 Vérifier que le message complet est disponible avant de lire
-        if AIOHandler.InputBuffer.Size < (SizeOf(Int32) + MsgSize) then Exit;
+        If AIOHandler.InputBuffer.Size < (SizeOf(Int32) + MsgSize) Then Exit;
 
         // 🔹 Maintenant, consommer la taille du message
         AIOHandler.ReadBytes(Buffer, SizeOf(Int32), False);
@@ -154,19 +162,16 @@ begin
         // 🔹 Lire le message entier
         AIOHandler.ReadBytes(Buffer, MsgSize, False);
         Move(Buffer[0], Msg, MsgSize);
-//        MessageDlg(paramstr(0)+' - Duration='+Msg.Duration.ToString,mtInformation,[mbok],0);
+        //        MessageDlg(paramstr(0)+' - Duration='+Msg.Duration.ToString,mtInformation,[mbok],0);
 
-        Result := True;  // ✅ Message bien reçu et décodé
-    except
-        on E: Exception do
-        begin
+        Result := True; // ✅ Message bien reçu et décodé
+    Except
+        On E: Exception Do Begin
             // 🚨 Gestion des erreurs réseau
             Exit;
-        end;
-    end;
-end;
+        End;
+    End;
+End;
 
+End.
 
-
-
-end.

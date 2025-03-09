@@ -4,7 +4,7 @@
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date     : 24/02/2025
-  Version  : 1.2
+  Version  : 2.0.0
   License  : MIT
 
   Description :
@@ -29,6 +29,11 @@
   - [22/02/2025] : Replaced singleton `AppLangManager` with a local instance, allowing multiple instances of `TAppWatcherClient` to have different languages.
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
   - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
+  - [06/03/2025] : v2.0 - Use of New  TAppWatcherMessage with Packed Record
+                         !!! This change makes the version incompatible with v1 !!!
+                        - Improvement: Use of getCmdName
+                        - Improvement: Added radio buttons to simulate accepting or refusing to close
+                        - Improvement: Added parameters to show how transmission works on close/start
 
   Notes :
   -------
@@ -36,77 +41,110 @@
   Contributions and improvements are welcome!
   *******************************************************************************)
 
-unit AppWatcherClient_main;
+Unit AppWatcherClient_main;
 
-interface
+Interface
 
-uses
+Uses
     Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-    Vcl.Controls, Vcl.Forms, Vcl.Dialogs, IdBaseComponent, IdComponent,
+    Vcl.Controls, Vcl.Forms, Vcl.Dialogs, IdBaseComponent, IdComponent, System.TypInfo,
     IdTCPConnection, IdTCPClient, Vcl.ExtCtrls, Vcl.StdCtrls,
     AppWatcherClient_Component, AppWatcher_ioHandler,
     AppWatcherClient_second, AppWatcher_Lang, System.IOUtils, Winapi.ShlObj, ActiveX, ComObj;
 
-type
+Type
 
-    TFormAppWatcherClient = class(TForm)
+    TFormAppWatcherClient = Class(TForm)
         Memo1: TMemo;
         Button1: TButton;
         AppWatcherClient1: TAppWatcherClient;
+        RdioStopAccepted: TRadioButton;
+        rdioStopRefused: TRadioButton;
 
-        procedure AppWatcherClient1CommandReceived(Sender: TObject; const Command:
+        Procedure AppWatcherClient1CommandReceived(Sender: TObject; Const Command:
             TAppWatcherCommand);
-        procedure AppWatcherClient1GetAppParams(Sender: TObject; var Params: string);
-        procedure AppWatcherClient1StopRequested(Sender: TObject;
-            var CanStop: Boolean);
-        procedure Button1Click(Sender: TObject);
-        procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+        Procedure AppWatcherClient1GetAppParams(Sender: TObject; Var Params: String);
+        Procedure AppWatcherClient1StopRequested(Sender: TObject;
+            Var CanStop: Boolean);
+        Procedure Button1Click(Sender: TObject);
+        Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
+        Procedure FormCreate(Sender: TObject);
 
     private
         {Déclarations privées}
 
     public
         {Déclarations publiques}
-    end;
+    End;
 
-var
+Var
     FormAppWatcherClient: TFormAppWatcherClient;
 
-implementation
+Implementation
 
 {$R *.dfm}
 
+Procedure TFormAppWatcherClient.AppWatcherClient1CommandReceived(Sender:
+    TObject; Const Command: TAppWatcherCommand);
+Begin
+    Memo1.lines.add('Received in  AppWatcherClient1CommandReceived :' + GetCmdName(Command));
+End;
 
-procedure TFormAppWatcherClient.AppWatcherClient1CommandReceived(Sender:
-    TObject; const Command: TAppWatcherCommand);
-begin
-    Memo1.lines.add('Received :' + TAppWatcherStrCommand[ord(Command)]);
-end;
+Procedure TFormAppWatcherClient.AppWatcherClient1GetAppParams(Sender: TObject;
+    Var Params: String);
+Begin
+    // Ici il est possible de transmettre à AppWatcher les paramètres nécessaires au redémarrage de l'application
+    // Here it is possible to transmit to AppWatcher the parameters necessary for restarting the application
+    If RdioStopAccepted.Checked Then
+        Params := ' -Stop:Yes '
+    Else
+        Params := ' -Stop:No ';
+    Memo1.lines.add('Params=' + Params);
 
-procedure TFormAppWatcherClient.AppWatcherClient1GetAppParams(Sender: TObject;
-    var Params: string);
-begin
-    Params := 'TEST';
-end;
+End;
 
-procedure TFormAppWatcherClient.AppWatcherClient1StopRequested(
-    Sender: TObject; var CanStop: Boolean);
-begin
-    CanStop := true;
-end;
+Procedure TFormAppWatcherClient.AppWatcherClient1StopRequested(
+    Sender: TObject; Var CanStop: Boolean);
+Begin
+    //AppWatcher demande à l'application si elle accepte la fermeture
+    //AppWatcher asks the application if it accepts the closing
+    If RdioStopAccepted.Checked Then
+        CanStop := true
+    Else
+        CanStop := False;
+End;
 
-procedure TFormAppWatcherClient.Button1Click(Sender: TObject);
-begin
+Procedure TFormAppWatcherClient.Button1Click(Sender: TObject);
+Begin
     FormAppWatcherClient2.showModal;
-end;
+End;
 
-procedure TFormAppWatcherClient.FormCloseQuery(Sender: TObject; var CanClose:
+Procedure TFormAppWatcherClient.FormCloseQuery(Sender: TObject; Var CanClose:
     Boolean);
-begin
-    CanClose:=False;
-    if AppWatcherClient1.CloseRequested then
+Begin
+    // On peut empecher la fermeture de la form par l'utilisateur mais l'approuver si c'est AppWatcher qui le demande
+    // We can prevent the user from closing the form but approve it if AppWatcher requests it.
+    CanClose := RdioStopAccepted.Checked;
+
+    If AppWatcherClient1.CloseRequested Then
         CanClose := true;
+End;
 
-end;
+Procedure TFormAppWatcherClient.FormCreate(Sender: TObject);
+Var
+    StopVal: String;
+Begin
+    //🔹 Récupération des paramètres de la ligne de commande
+    Memo1.Lines.add('Start with params =' + CmdLine);
+    //🔹 Retrieving command line parameters
+    If FindCmdLineSwitch('Stop', StopVal, True, [clstValueAppended]) Then Begin
+        StopVal := LowerCase(StopVal);
+        If (StopVal = 'yes') Or (StopVal = 'y') Or (StopVal = 'oui') Or (StopVal = 'o') Then
+            RdioStopAccepted.Checked := true
+        Else
+            RdioStoprefused.Checked := true;
+    End;
+End;
 
-end.
+End.
+

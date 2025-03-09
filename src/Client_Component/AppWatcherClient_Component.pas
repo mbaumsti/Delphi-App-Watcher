@@ -4,7 +4,7 @@
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date     : 24/02/2025
-  Version  : 1.3.2
+  Version  : 2.0.0
   License  : MIT
 
   Description :
@@ -34,124 +34,118 @@
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
   - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
   - [25/02/2025] : v1.3.2 **Fixed bug where all applications were stopping instead of only the requested one**
+  - [06/03/2025] : v2.0 - Use of New  TAppWatcherMessage with Packed Record
+                          !!! This change makes the version incompatible with v1 !!!
+                        - Minor modification : improvement of FindParentForm
+                        - Correction : FLastCommand was never filled
 
   *******************************************************************************)
 
-unit AppWatcherClient_Component;
+Unit AppWatcherClient_Component;
 
-interface
+Interface
 
-uses
+Uses
     System.Classes, System.SysUtils, IdTCPClient, IdTCPConnection, IdComponent, IdGlobal,
     IdBaseComponent, Vcl.ExtCtrls, Vcl.StdCtrls, AppWatcher_ioHandler,
     Vcl.Forms, AppWatcher_Lang, Vcl.Controls, dialogs, System.IniFiles, Winapi.Windows, Winapi.Messages,
     AppWatcher_consts;
 
-type
-    TOnCommandReceived = procedure(Sender: TObject; const Command: TAppWatcherCommand) of object;
-    TOnStopRequested = procedure(Sender: TObject; var CanStop: Boolean) of object;
-    TOnGetAppParams = procedure(Sender: TObject; var Params: string) of object;
+Type
+    TOnCommandReceived = Procedure(Sender: TObject; Const Command: TAppWatcherCommand) Of Object;
+    TOnStopRequested = Procedure(Sender: TObject; Var CanStop: Boolean) Of Object;
+    TOnGetAppParams = Procedure(Sender: TObject; Var Params: String) Of Object;
 
-    TAppWatcherClient = class(TComponent)
+    TAppWatcherClient = Class(TComponent)
     private
-        FIdTCPClient:          TIdTCPClient;
-        FTimer:                TTimer;
-        FMemo:                 TMemo;
-        FLang:                 TAppWatcherLang;
-        FLastCommand:          string;
-        FOnCommandReceived:    TOnCommandReceived;
-        FOnStopRequested:      TOnStopRequested;
-        FOnGetAppParams:       TOnGetAppParams;
-        FPort:                 Integer;
-        FInterval:             Integer;
+        FIdTCPClient: TIdTCPClient;
+        FTimer: TTimer;
+        FMemo: TMemo;
+        FLang: TAppWatcherLang;
+        FLastCommand: String;
+        FOnCommandReceived: TOnCommandReceived;
+        FOnStopRequested: TOnStopRequested;
+        FOnGetAppParams: TOnGetAppParams;
+        FPort: Integer;
+        FInterval: Integer;
         FLastReconnectAttempt: TDateTime;
-        FSignalErrorConnect:   Boolean;
-        FRequestingClose:      Boolean;
-        FIniFileNotFOund:      Boolean;
-        FIsOnMainForm:         Boolean;
-        FLanguageManager:      TAppLangManager;
-        procedure TimerEvent(Sender: TObject);
-        procedure SetMemo(Value: TMemo);
-        procedure SetPort(Value: Integer);
-        procedure SetInterval(Value: Integer);
-        procedure CheckForCommands;
-        procedure SetLang(Value: TAppWatcherLang);
-        procedure WriteMsgFormat(const Section, Msg: string; const Args: array of const);
-        procedure WriteMsg(const Msg: string);
+        FSignalErrorConnect: Boolean;
+        FRequestingClose: Boolean;
+        FIniFileNotFOund: Boolean;
+        FIsOnMainForm: Boolean;
+        FLanguageManager: TAppLangManager;
+        Procedure TimerEvent(Sender: TObject);
+        Procedure SetMemo(Value: TMemo);
+        Procedure SetPort(Value: Integer);
+        Procedure SetInterval(Value: Integer);
+        Procedure CheckForCommands;
+        Procedure SetLang(Value: TAppWatcherLang);
+        Procedure WriteMsgFormat(Const Section, Msg: String; Const Args: Array Of Const);
+        Procedure WriteMsg(Const Msg: String);
         Function InstanceActive: Boolean;
 
     protected
         FIsFirstLoad: Boolean; //Permet de savoir si c'est le premier chargement
-        procedure Loaded; override;
+        Procedure Loaded; override;
     public
-        constructor Create(AOwner: TComponent); override;
-        destructor Destroy; override;
-        procedure Connect;
-        procedure Disconnect;
-        property LastCommand: String read FLastCommand;
+        Constructor Create(AOwner: TComponent); override;
+        Destructor Destroy; override;
+        Procedure Connect;
+        Procedure Disconnect;
+        Property LastCommand: String Read FLastCommand;
     published
-        property Memo: TMemo read FMemo write SetMemo;
+        Property Memo: TMemo Read FMemo Write SetMemo;
         //22/02/2025 Property Port and Interval moved in inifile
         //property Port:              Integer read FPort write SetPort default 2520;
         //property Interval:          Integer read FInterval write SetInterval default 3000;
-        property OnCommandReceived: TOnCommandReceived read FOnCommandReceived write FOnCommandReceived;
-        property OnStopRequested:   TOnStopRequested read FOnStopRequested write FOnStopRequested;
-        property OnGetAppParams:    TOnGetAppParams read FOnGetAppParams write FOnGetAppParams;
-        property Lang:              TAppWatcherLang read FLang write SetLang default langFr;
-        property CloseRequested:    Boolean read FRequestingClose;
-    end;
+        Property OnCommandReceived: TOnCommandReceived Read FOnCommandReceived Write FOnCommandReceived;
+        Property OnStopRequested: TOnStopRequested Read FOnStopRequested Write FOnStopRequested;
+        Property OnGetAppParams: TOnGetAppParams Read FOnGetAppParams Write FOnGetAppParams;
+        Property Lang: TAppWatcherLang Read FLang Write SetLang default langFr;
+        Property CloseRequested: Boolean Read FRequestingClose;
+    End;
 
-procedure Register;
+Procedure Register;
 
-implementation
+Implementation
 
-
-procedure Register;
-begin
+Procedure Register;
+Begin
     RegisterComponents('AppWatcher', [TAppWatcherClient]);
-end;
+End;
 
 {TAppWatcherClient}
 
-const
+Const
     CLientConnectRetryDelay: Integer = 5000; //5 sec
 
-function FindParentForm(AComponent: TComponent): TForm;
-var
+Function FindParentForm(AComponent: TComponent): TForm;
+Var
     Current: TComponent;
-begin
-    Result := nil;
+Begin
+    Result := Nil;
     Current := AComponent;
 
     //🔄 Remonte dans la hiérarchie des "Owner" (gestion mémoire)
-    while Assigned(Current) do
-    begin
-        if Current is TForm then
+    While Assigned(Current) Do Begin
+        If Current Is TForm Then
             Exit(TForm(Current)); //✅ Trouvé !
 
         Current := Current.Owner;
-    end;
+    End;
 
     //🔄 Remonte aussi la hiérarchie des "Parent" (visuel)
-    if AComponent is TControl then
-    begin
-        Current := TControl(AComponent).Parent;
-        while Assigned(Current) do
-        begin
-            if Current is TForm then
-                Exit(TForm(Current)); //✅ Trouvé via Parent !
+    If AComponent Is TControl Then Begin
+        Exit(TForm(GetParentForm(TControl(AComponent))));
+    End;
+End;
 
-            Current := TControl(Current).Parent;
-        end;
-    end;
-end;
-
-constructor TAppWatcherClient.Create(AOwner: TComponent);
-var
+Constructor TAppWatcherClient.Create(AOwner: TComponent);
+Var
     ParentForm: TForm;
-begin
+Begin
 
-    inherited Create(AOwner);
+    Inherited Create(AOwner);
     FIsFirstLoad := true;
     FRequestingClose := False; //Par défaut, pas de demande de fermeture
     FSignalErrorConnect := true;
@@ -172,30 +166,30 @@ begin
     FTimer.OnTimer := TimerEvent;
     FTimer.Enabled := False;
 
-    if not(csDesigning in ComponentState) then
+    If Not (csDesigning In ComponentState) Then
         FTimer.Enabled := true; //✅ Actif seulement en mode exécution
 
-end;
+End;
 
-destructor TAppWatcherClient.Destroy;
-begin
+Destructor TAppWatcherClient.Destroy;
+Begin
     Disconnect;
     FreeAndNil(FTimer);
     FreeAndNil(FIdTCPClient);
     FreeAndNil(FLanguageManager);
-    inherited Destroy;
-end;
+    Inherited Destroy;
+End;
 
-procedure TAppWatcherClient.Loaded;
-var
-    IniFilePathName: string;
-    Ini:             TMemIniFile;
-    ParentForm:      TForm;
-    Msg:             string;
-begin
-    inherited Loaded;
+Procedure TAppWatcherClient.Loaded;
+Var
+    IniFilePathName: String;
+    Ini: TMemIniFile;
+    ParentForm: TForm;
+    Msg: String;
+Begin
+    Inherited Loaded;
 
-    if Assigned(FMemo) then
+    If Assigned(FMemo) Then
         FMemo.Lines.clear;
 
     ParentForm := FindParentForm(Self.GetParentComponent);
@@ -207,292 +201,272 @@ begin
     //Charger le fichier INI
     IniFilePathName := FindConfigPath(AppWatcherIniFileName);
 
-    if IniFilePathName = '' then
-    begin
+    If IniFilePathName = '' Then Begin
         //Le fichier INI est introuvable
         FIniFileNotFOund := true;
-        if FLang = LangEn then
+        If FLang = LangEn Then
             Msg := format(MsgIniFileNotFoundEn, [AppWatcherIniFileName])
-        else
+        Else
             Msg := format(MsgIniFileNotFoundFr, [AppWatcherIniFileName]);
 
         WriteMsg(Msg);
-        if FIsOnMainForm and not(csDesigning in ComponentState) then
+        If FIsOnMainForm And Not (csDesigning In ComponentState) Then
             MessageDlg(Msg, mtError, [mbok], 0)
-    end
-    else
-    begin
+    End Else Begin
         //Charger les valeurs du fichier INI
         Ini := TMemIniFile.Create(IniFilePathName);
-        try
+        Try
             FPort := Ini.ReadInteger('ClientConfig', 'Port', 2520);
             FInterval := Ini.ReadInteger('ClientConfig', 'Interval', 3000);
-        finally
-                Ini.Free;
-        end;
-    end;
+        Finally
+            Ini.Free;
+        End;
+    End;
 
     FIsFirstLoad := False;
-end;
+End;
 
-procedure TAppWatcherClient.SetLang(Value: TAppWatcherLang);
-var
-    Msg: string;
-begin
-    if (FLang <> Value) or FIsFirstLoad then
-    begin
+Procedure TAppWatcherClient.SetLang(Value: TAppWatcherLang);
+Var
+    Msg: String;
+Begin
+    If (FLang <> Value) Or FIsFirstLoad Then Begin
         FLang := Value;
         FIsFirstLoad := False;
 
         //✅ Charger la langue localement
-        if not FLanguageManager.LoadLanguage(FLang) then
-        begin
-            if FLang = LangEn then
+        If Not FLanguageManager.LoadLanguage(FLang) Then Begin
+            If FLang = LangEn Then
                 Msg := format(MsgIniFileNotFoundEn, [LangEnIniFileName])
-            else
+            Else
                 Msg := format(MsgIniFileNotFoundFr, [LangFrIniFileName]);
 
             WriteMsg(Msg);
 
-            if FIsOnMainForm and not(csDesigning in ComponentState) then
+            If FIsOnMainForm And Not (csDesigning In ComponentState) Then
                 MessageDlg(Msg, mtError, [mbok], 0);
 
             FIniFileNotFOund := true;
-        end;
-    end;
-end;
+        End;
+    End;
+End;
 
 Function TAppWatcherClient.InstanceActive: Boolean;
 Begin
     Result := true;
 
-    if not FIsOnMainForm or FRequestingClose or FIniFileNotFOund then begin
+    If Not FIsOnMainForm Or FRequestingClose Or FIniFileNotFOund Then Begin
         Result := False;
-        if FIniFileNotFOund then begin
+        If FIniFileNotFOund Then Begin
             //Message si le fichier est introuvable
-            if FLang = LangEn then
+            If FLang = LangEn Then
                 WriteMsg(MsgNoInstanceActiveEn)
-            else
+            Else
                 WriteMsg(MsgNoInstanceActiveFr);
 
-        end
-        Else
+        End Else
             WriteMsgFormat('CLIENT', 'NOT_ACTIVE', []);
-    end;
-ENd;
+    End;
+End;
 
-procedure TAppWatcherClient.Connect;
-var
+Procedure TAppWatcherClient.Connect;
+Var
     ParentForm: TForm;
-begin
+Begin
     //ParentForm := FindParentForm(Self.GetParentComponent);
     //FIsOnMainForm := (ParentForm = Application.MainForm);
-    if not InstanceActive then
+    If Not InstanceActive Then
         Exit;
 
-    if (Now - FLastReconnectAttempt) * 86400000 < CLientConnectRetryDelay then
+    If (Now - FLastReconnectAttempt) * 86400000 < CLientConnectRetryDelay Then
         Exit; //⏳ Attendre avant de réessayer
 
     FLastReconnectAttempt := Now;
 
-    if not FIdTCPClient.Connected then
-    begin
-        try
+    If Not FIdTCPClient.Connected Then Begin
+        Try
             FIdTCPClient.Port := FPort;
             FIdTCPClient.Connect;
             FSignalErrorConnect := False;
 
-            if Assigned(FMemo) then
+            If Assigned(FMemo) Then
                 FMemo.Lines.Add(FLanguageManager.GetMessage('CLIENT', 'CONNECTED'));
-        except
-            on E: Exception do
-            begin
-                if FSignalErrorConnect then begin
-                    if Assigned(FMemo) then
+        Except
+            On E: Exception Do Begin
+                If FSignalErrorConnect Then Begin
+                    If Assigned(FMemo) Then
                         FMemo.Lines.Add(FLanguageManager.GetMessage('CLIENT', 'FAILED_CONNECT'));
                     FSignalErrorConnect := False;
-                end;
-            end;
-        end;
-    end;
-end;
+                End;
+            End;
+        End;
+    End;
+End;
 
-procedure TAppWatcherClient.TimerEvent(Sender: TObject);
-var
+Procedure TAppWatcherClient.TimerEvent(Sender: TObject);
+Var
     ParentForm: TForm;
-begin
+Begin
     //ParentForm := FindParentForm(Self.GetParentComponent);
     //FIsOnMainForm := (ParentForm = Application.MainForm);
-    if not InstanceActive then begin
+    If Not InstanceActive Then Begin
         FTimer.Enabled := False;
         Exit;
-    end;
+    End;
 
-    if not FIdTCPClient.Connected then
+    If Not FIdTCPClient.Connected Then
         Connect;
 
     //Exécuter CheckForCommands dans un thread
     TThread.CreateAnonymousThread(
-        procedure
-        begin
+        Procedure
+        Begin
             CheckForCommands;
-        end).Start;
-end;
+        End).Start;
+End;
 
-procedure TAppWatcherClient.Disconnect;
-begin
-    if FIdTCPClient.Connected then
+Procedure TAppWatcherClient.Disconnect;
+Begin
+    If FIdTCPClient.Connected Then
         FIdTCPClient.Disconnect;
-end;
+End;
 
-procedure TAppWatcherClient.SetMemo(Value: TMemo);
-begin
+Procedure TAppWatcherClient.SetMemo(Value: TMemo);
+Begin
     FMemo := Value;
-end;
+End;
 
-procedure TAppWatcherClient.SetPort(Value: Integer);
-begin
+Procedure TAppWatcherClient.SetPort(Value: Integer);
+Begin
 
-    if Value <> FPort then
-    begin
+    If Value <> FPort Then Begin
         FPort := Value;
-        if FIdTCPClient.Connected then
-        begin
+        If FIdTCPClient.Connected Then Begin
             Disconnect;
             Connect;
-        end;
-    end;
-end;
+        End;
+    End;
+End;
 
-procedure TAppWatcherClient.SetInterval(Value: Integer);
-begin
-    if Value <> FInterval then
-    begin
+Procedure TAppWatcherClient.SetInterval(Value: Integer);
+Begin
+    If Value <> FInterval Then Begin
         FInterval := Value;
         FTimer.Interval := FInterval;
-    end;
-end;
+    End;
+End;
 
-procedure TAppWatcherClient.WriteMsg(const Msg: string);
-begin
-    TThread.Queue(nil,
-        procedure
-        begin
-            if Assigned(FMemo) then
+Procedure TAppWatcherClient.WriteMsg(Const Msg: String);
+Begin
+    TThread.Queue(Nil,
+        Procedure
+        Begin
+            If Assigned(FMemo) Then
                 FMemo.Lines.Add(Msg);
-        end);
-end;
+        End);
+End;
 
-procedure TAppWatcherClient.WriteMsgFormat(const Section, Msg: string; const Args: array of const);
-var
-    FormattedMsg: string;
-begin
+Procedure TAppWatcherClient.WriteMsgFormat(Const Section, Msg: String; Const Args: Array Of Const);
+Var
+    FormattedMsg: String;
+Begin
     //✅ Nouvelle version utilisant l'instance locale
     FormattedMsg := format(FLanguageManager.GetMessage(Section, Msg), Args);
     WriteMsg(FormattedMsg);
-end;
+End;
 
-procedure TAppWatcherClient.CheckForCommands;
-var
+Procedure TAppWatcherClient.CheckForCommands;
+Var
     LocalMsg, AnswerMsg, ReceivedMsg: TAppWatcherMessage;
-    CanStop:                          Boolean;
-    AppPath, Params:                  string;
-    idx:                              Integer;
-    MessageReceived:                  Boolean;
-begin
-    if not FIdTCPClient.Connected then
+    CanStop: Boolean;
+    AppPath, Params: String;
+    idx: Integer;
+    MessageReceived: Boolean;
+Begin
+    If Not FIdTCPClient.Connected Then
         Exit;
 
-    try
+    Try
         MessageReceived := False;
 
         //🔁 Lire tous les messages disponibles
-        while FIdTCPClient.IOHandler.InputBuffer.Size > 0 do
-        begin
+        While FIdTCPClient.IOHandler.InputBuffer.Size > 0 Do Begin
             MessageReceived := true;
 
             //🔹 Lire les données réseau
-            if ReadMessage(FIdTCPClient.IOHandler, ReceivedMsg) then
-            begin
+            If ReadMessage(FIdTCPClient.IOHandler, ReceivedMsg) Then Begin
                 LocalMsg := ReceivedMsg;
                 AppPath := ParamStr(0);
+                FLastCommand := LocalMsg.CmdName;
 
                 WriteMsgFormat('CLIENT', 'MESSAGE_RECEIVED', [LocalMsg.CmdName]);
 
-                case LocalMsg.Command of
+                Case LocalMsg.Command Of
                     //🔵 Commande WHO (identification)
-                    cmdWHO:
-                        begin
+                    cmdWHO: Begin
                             AnswerMsg.Init(Application.Handle, cmdWHO_REPLY, AppPath, '', 0);
                             AnswerMsg.SendMessage(FIdTCPClient.IOHandler);
                             WriteMsgFormat('CLIENT', 'WHO_RECEIVED', [AnswerMsg.AppPath, IntToStr(AnswerMsg.Handle)]);
-                        end;
+                        End;
 
                     //🛑 Commande STOP (demande d'arrêt)
-                    cmdSTOP:
-                        begin
+                    cmdSTOP: Begin
                             //Pas de réponse si la demande ne nous concerne pas
-                            if SameText(ExtractFileName(AppPath), LocalMsg.AppName) and (LocalMsg.Handle = Application.Handle) then
-                            begin
+                            If SameText(ExtractFileName(AppPath), LocalMsg.AppName) And (LocalMsg.Handle = Application.Handle) Then Begin
                                 Params := '';
-                                if Assigned(FOnGetAppParams) then
-                                    TThread.Synchronize(nil,
-                                        procedure
-                                        begin
+                                If Assigned(FOnGetAppParams) Then
+                                    TThread.Synchronize(Nil,
+                                        Procedure
+                                        Begin
                                             FOnGetAppParams(Self, Params);
-                                        end);
+                                        End);
 
                                 //Initialisation de la réponse
                                 AnswerMsg.Init(Application.Handle, cmdACK, ParamStr(0), Params, 0);
-                                WriteMsgFormat('CLIENT', 'STOP_RECEIVED', [AnswerMsg.AppPath, IntToStr(AnswerMsg.Handle)]);
+                                WriteMsgFormat('CLIENT', 'STOP_RECEIVED', [AnswerMsg.AppPath + ' params=' + Params, IntToStr(AnswerMsg.Handle)]);
 
                                 //🔍 Demander l'arrêt à l'application
                                 CanStop := true;
-                                if Assigned(FOnStopRequested) then
-                                begin
-                                    TThread.Synchronize(nil,
-                                        procedure
-                                        begin
+                                If Assigned(FOnStopRequested) Then Begin
+                                    TThread.Synchronize(Nil,
+                                        Procedure
+                                        Begin
                                             FOnStopRequested(Self, CanStop);
-                                        end);
-                                end;
+                                        End);
+                                End;
 
                                 //📌 Réponse ACK ou NACK
-                                if CanStop then begin
+                                If CanStop Then Begin
                                     AnswerMsg.Command := cmdACK;
                                     WriteMsgFormat('CLIENT', 'STOP_ACCEPTED', [AnswerMsg.AppPath, IntToStr(AnswerMsg.Handle)]);
-                                end else begin
+                                End Else Begin
                                     AnswerMsg.Command := cmdNACK;
                                     WriteMsgFormat('CLIENT', 'STOP_REFUSED', [AnswerMsg.AppPath, IntToStr(AnswerMsg.Handle)]);
-                                end;
+                                End;
 
                                 AnswerMsg.SendMessage(FIdTCPClient.IOHandler);
 
                                 //🔥 Fermer l'application si arrêt accepté
-                                if CanStop then
-                                    TThread.Queue(nil,
-                                        procedure
-                                        begin
+                                If CanStop Then
+                                    TThread.Queue(Nil,
+                                        Procedure
+                                        Begin
                                             FRequestingClose := true; //✅ Indique que le composant demande la fermeture
 
-                                            if Assigned(Application.MainForm) then begin
-                                                Application.MainForm.OnCloseQuery := nil;
-
+                                            If Assigned(Application.MainForm) Then Begin
+                                                Application.MainForm.OnCloseQuery := Nil;
                                                 Application.MainForm.close;
-                                            end
-                                            else
+                                            End Else
                                                 Application.terminate; //Sécurité si la MainForm n'existe pas
-                                        end);
+                                        End);
 
-                            end;
-                        end;
+                            End;
+                        End;
 
-                    cmdSTOP_REQUEST:
-                        begin
+                    cmdSTOP_REQUEST: Begin
                             //Préparation à une demande de STOP
                             //Pas de réponse si la demande ne nous concerne pas
-                            if SameText(ExtractFileName(AppPath), LocalMsg.AppName) then
-                            begin
+                            If SameText(ExtractFileName(AppPath), LocalMsg.AppName) Then Begin
 
                                 //L'application doit renvoyer son Handle
                                 WriteMsgFormat('CLIENT', 'STOP_REQUEST', [IntToStr(Application.Handle)]);
@@ -501,34 +475,34 @@ begin
                                 AnswerMsg.Init(Application.Handle, cmdREPLY_STOP_REQUEST, ParamStr(0), '', LocalMsg.Duration);
                                 //Envoyer la réponse STOP à l’AGENT
                                 AnswerMsg.SendMessage(FIdTCPClient.IOHandler);
-                            end;
-                        end;
+                            End;
+                        End;
 
-                else
+                Else
                     //❓ Commande inconnue
                     WriteMsgFormat('CLIENT', 'UNKNOW_COMMAND', [LocalMsg.CmdName, IntToStr(Application.Handle)]);
-                end;
+                End;
 
                 //🔔 Déclencher l'événement OnCommandReceived
-                if Assigned(FOnCommandReceived) then
-                begin
-                    TThread.Synchronize(nil,
-                        procedure
-                        begin
+                If Assigned(FOnCommandReceived) Then Begin
+                    TThread.Synchronize(Nil,
+                        Procedure
+                        Begin
                             FOnCommandReceived(Self, LocalMsg.Command);
-                        end);
-                end;
-            end;
-        end;
+                        End);
+                End;
+            End;
+        End;
 
         //✅ Ajout d'une pause uniquement si aucun message n'a été lu
-        if not MessageReceived then
+        If Not MessageReceived Then
             Sleep(10);
-    except
-        on E: Exception do
+    Except
+        On E: Exception Do
             WriteMsgFormat('CLIENT', 'ERROR_RECEIVING', [E.Message]);
 
-    end;
-end;
+    End;
+End;
 
-end.
+End.
+

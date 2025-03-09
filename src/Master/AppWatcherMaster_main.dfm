@@ -718,16 +718,16 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     691)
   TextHeight = 17
   object LblAppName: TLabel
-    Left = 1024
-    Top = 115
+    Left = 1018
+    Top = 158
     Width = 130
     Height = 17
     Anchors = [akTop, akRight]
     Caption = 'Programme '#224' stopper'
   end
   object LblDuration: TLabel
-    Left = 1024
-    Top = 176
+    Left = 1018
+    Top = 219
     Width = 69
     Height = 17
     Anchors = [akTop, akRight]
@@ -744,19 +744,19 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     ExplicitWidth = 421
   end
   object BtnListApps: TButton
-    Left = 1024
-    Top = 80
-    Width = 210
+    Left = 1016
+    Top = 54
+    Width = 220
     Height = 30
     Anchors = [akTop, akRight]
-    Caption = 'Liste App'
+    Caption = #55357#56550' Applis en cours d'#39'ex'#233'cution'
     TabOrder = 0
     OnClick = BtnListAppsClick
   end
   object BtnStopApp: TButton
-    Left = 1024
-    Top = 206
-    Width = 210
+    Left = 1018
+    Top = 249
+    Width = 220
     Height = 30
     Anchors = [akTop, akRight]
     Caption = 'Stopper'
@@ -764,17 +764,17 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     OnClick = BtnStopAppClick
   end
   object EditAppName: TEdit
-    Left = 1024
-    Top = 139
-    Width = 210
+    Left = 1018
+    Top = 182
+    Width = 220
     Height = 25
     Anchors = [akTop, akRight]
     TabOrder = 2
   end
   object BtnStart: TButton
-    Left = 1024
-    Top = 268
-    Width = 210
+    Left = 1018
+    Top = 311
+    Width = 220
     Height = 30
     Anchors = [akTop, akRight]
     Caption = 'Red'#233'marrer tout'
@@ -782,9 +782,9 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     OnClick = BtnStartClick
   end
   object BtnCancel: TButton
-    Left = 1024
-    Top = 237
-    Width = 210
+    Left = 1018
+    Top = 280
+    Width = 220
     Height = 30
     Anchors = [akTop, akRight]
     Caption = 'Annuler Stop'
@@ -792,8 +792,8 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     OnClick = BtnCancelClick
   end
   object RzNumericEdit1: TRzNumericEdit
-    Left = 1164
-    Top = 172
+    Left = 1165
+    Top = 215
     Width = 45
     Height = 25
     Anchors = [akTop, akRight]
@@ -802,8 +802,8 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     Value = 30.000000000000000000
   end
   object UpDown1: TUpDown
-    Left = 1209
-    Top = 172
+    Left = 1210
+    Top = 215
     Width = 16
     Height = 25
     Anchors = [akTop, akRight]
@@ -813,7 +813,7 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     TabOrder = 6
   end
   object RdioFrench: TRadioButton
-    Left = 1024
+    Left = 1017
     Top = 19
     Width = 112
     Height = 17
@@ -940,14 +940,34 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     end
   end
   object BtnAgentStop: TButton
-    Left = 1027
-    Top = 326
-    Width = 210
+    Left = 1018
+    Top = 369
+    Width = 220
     Height = 30
     Anchors = [akTop, akRight]
     Caption = 'Arr'#234'ter les agents'
     TabOrder = 11
     OnClick = BtnAgentStopClick
+  end
+  object BtnAppCopy: TButton
+    Left = 1016
+    Top = 87
+    Width = 220
+    Height = 30
+    Anchors = [akTop, akRight]
+    Caption = 'Applications '#224' d'#233'ployer'
+    TabOrder = 12
+    OnClick = BtnAppCopyClick
+  end
+  object BtnToggleFilter: TToggleSwitch
+    Left = 1018
+    Top = 120
+    Width = 207
+    Height = 20
+    StateCaptions.CaptionOn = 'Filtre app. '#224' d'#233'ployer ON'
+    StateCaptions.CaptionOff = 'Filtre app. '#224' d'#233'ployer OFF'
+    TabOrder = 13
+    OnClick = BtnToggleFilterClick
   end
   object IdTCPServer1: TIdTCPServer
     Bindings = <>

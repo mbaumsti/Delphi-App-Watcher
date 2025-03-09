@@ -1,7 +1,7 @@
 object FormAppWatcherClient2: TFormAppWatcherClient2
   Left = 0
   Top = 0
-  Caption = 'FormAppWatcherClient2'
+  Caption = 'FormAppWatcherClient - Second'
   ClientHeight = 441
   ClientWidth = 624
   Color = clBtnFace

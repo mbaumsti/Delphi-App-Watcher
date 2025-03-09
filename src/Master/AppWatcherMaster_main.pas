@@ -4,7 +4,7 @@
   Author  : mbaumsti
   GitHub  : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date    : 28/02/2025
-  Version : 1.3.2
+  Version : 2.0.0
   License : MIT
 
   Description :
@@ -36,38 +36,44 @@
   - [24/02/2025] : v1.3 Fixed sorting issue + Added Splitter for better UI
   - [27/02/2025] : v1.3.3 Enhanced graceful shutdown of Indy server
   - [28/02/2025] : v1.3.4 Added application filters for better usability
+  - [06/03/2025] : v2.0 - Use of New  TAppWatcherMessage with Packed Record
+                          !!! This change makes the version incompatible with v1 !!!
+                        - Check if the MASTER is still the MASTER
+                        - Added files deployment features
+                        - Filtering app list with deployment list
 
   Note :
   -------
   This project is open-source. Contributions are welcome!
   *******************************************************************************)
 
-unit AppWatcherMaster_main;
+Unit AppWatcherMaster_main;
 
-interface
+Interface
 
-uses
+Uses
     Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
     Vcl.Controls, Vcl.Forms, Vcl.Dialogs, IdBaseComponent, IdComponent, System.Generics.Collections,
     IdCustomTCPServer, IdTCPServer, IdContext, Vcl.StdCtrls, Vcl.ComCtrls, System.SyncObjs,
     AppWatcher_ioHandler, Vcl.Mask, RzEdit, AppWatcher_Lang, Vcl.ExtCtrls, IdStack, System.Generics.Defaults,
     Vcl.Grids, System.IniFiles, Winapi.WinSock, IdScheduler, System.strutils, System.Math,
-    IdSchedulerOfThread, IdSchedulerOfThreadPool, IdGlobal,
-    AppWatcher_consts, System.RegularExpressions;
+    IdSchedulerOfThread, IdSchedulerOfThreadPool, IdGlobal, System.DateUtils, System.IOUtils,
+    AppWatcher_consts, System.RegularExpressions, IdSSLOpenSSL,
+    Vcl.WinXCtrls;
 
-type
-    TAppRec = record
-        ClientIp: string;
-        ClientName: string;
-        UserName: string;
-        AppName: string;
+Type
+    TAppRec = Record
+        ClientIp: String;
+        ClientName: String;
+        UserName: String;
+        AppName: String;
         AppPath: String;
         AppHandle: Integer;
-        procedure init(Msg: TAppWatcherMessage; Context: TIdContext);
-        class operator Equal(const A, B: TAppRec): Boolean;
-    end;
+        Procedure init(Msg: TAppWatcherMessage; Context: TIdContext);
+        Class Operator Equal(Const A, B: TAppRec): Boolean;
+    End;
 
-    TFormAppWatcherMaster = class(TForm)
+    TFormAppWatcherMaster = Class(TForm)
         IdTCPServer1: TIdTCPServer;
         MemoLogs: TMemo;
         BtnListApps: TButton;
@@ -91,81 +97,91 @@ type
         BtnAgentStop: TButton;
         TimerupdateClient: TTimer;
         Splitter1: TSplitter;
-        procedure BtnAgentStopClick(Sender: TObject);
-        procedure BtnCancelClick(Sender: TObject);
-        procedure FormCreate(Sender: TObject);
-        procedure BtnListAppsClick(Sender: TObject);
+        BtnAppCopy: TButton;
+        BtnToggleFilter: TToggleSwitch;
+        Procedure BtnAgentStopClick(Sender: TObject);
+        Procedure BtnCancelClick(Sender: TObject);
+        Procedure FormCreate(Sender: TObject);
+        Procedure BtnListAppsClick(Sender: TObject);
 
-        procedure BtnStartClick(Sender: TObject);
-        procedure BtnStopAppClick(Sender: TObject);
-        procedure FormClose(Sender: TObject; var Action: TCloseAction);
-        procedure IdTCPServer1Connect(AContext: TIdContext);
-        procedure IdTCPServer1Disconnect(AContext: TIdContext);
-        procedure IdTCPServer1Execute(AContext: TIdContext);
-        procedure RdioEnglishClick(Sender: TObject);
-        procedure RdioFrenchClick(Sender: TObject);
-        procedure StringGridAppDblClick(Sender: TObject);
-        procedure StringGridAppDrawCell(Sender: TObject; ACol, ARow: LongInt; Rect:
+        Procedure BtnStartClick(Sender: TObject);
+        Procedure BtnStopAppClick(Sender: TObject);
+        Procedure FormClose(Sender: TObject; Var Action: TCloseAction);
+        Procedure IdTCPServer1Connect(AContext: TIdContext);
+        Procedure IdTCPServer1Disconnect(AContext: TIdContext);
+        Procedure IdTCPServer1Execute(AContext: TIdContext);
+        Procedure RdioEnglishClick(Sender: TObject);
+        Procedure RdioFrenchClick(Sender: TObject);
+        Procedure StringGridAppDblClick(Sender: TObject);
+        Procedure StringGridAppDrawCell(Sender: TObject; ACol, ARow: LongInt; Rect:
             TRect; State: TGridDrawState);
-        procedure StringGridAppFixedCellClick(Sender: TObject; ACol, ARow: LongInt);
-        procedure StringGridAppKeyDown(Sender: TObject; var Key: Word; Shift:
+        Procedure StringGridAppFixedCellClick(Sender: TObject; ACol, ARow: LongInt);
+        Procedure StringGridAppKeyDown(Sender: TObject; Var Key: Word; Shift:
             TShiftState);
-        procedure StringGridAppKeyPress(Sender: TObject; var Key: Char);
-        procedure StringGridAppMouseMove(Sender: TObject; Shift: TShiftState; X, Y:
+        Procedure StringGridAppKeyPress(Sender: TObject; Var Key: Char);
+        Procedure StringGridAppMouseMove(Sender: TObject; Shift: TShiftState; X, Y:
             Integer);
-        procedure StringGridAppSetEditText(Sender: TObject; ACol, ARow: LongInt; const
-            Value: string);
-        procedure TimerupdateClientTimer(Sender: TObject);
+        Procedure StringGridAppSetEditText(Sender: TObject; ACol, ARow: LongInt; Const
+            Value: String);
+        Procedure TimerupdateClientTimer(Sender: TObject);
+        Procedure BtnAppCopyClick(Sender: TObject);
+        Procedure BtnToggleFilterClick(Sender: TObject);
     private
         {Déclarations privées}
-        FSortColumn:                Integer;
-        FSelColumn:                 Integer;
-        FSortAscending:             Boolean;
-        FIsFirstLoad:               Boolean;
-        FLang:                      TAppWatcherLang;
-        FLanguageManager:           TAppLangManager;
-        FAppList:                   TList<TAppRec>; //Clé = NomMachine | Valeur = Liste des Apps
-        FAppListLock:               TCriticalSection; //🔒 Protection contre les accès concurrents
+        FSortColumn: Integer;
+        FSelColumn: Integer;
+        FSortAscending: Boolean;
+        FIsFirstLoad: Boolean;
+        FLang: TAppWatcherLang;
+        FLanguageManager: TAppLangManager;
+        FAppList: TList<TAppRec>; //Clé = NomMachine | Valeur = Liste des Apps
+        FAppListLock: TCriticalSection; //🔒 Protection contre les accès concurrents
         FLastHintCol, FLastHintRow: Integer;
-        function ContainsApp(const App: TAppRec): Boolean;
-        procedure UpdateClientList;
-        procedure UpdateUI;
-        Function HostName(Context: TIdContext): string;
-        procedure SendMessageToClients(Msg: TAppWatcherMessage);
-        procedure UpdateStringGrid;
-        procedure SortGrid(Column: Integer);
-        procedure CloseServer;
+        FLastIniModified: TDateTime;
+        FIniFilePathName: String;
+        FSSLHandler: TIdServerIOHandlerSSLOpenSSL;
+        Function ContainsApp(Const App: TAppRec): Boolean;
+        Procedure UpdateClientList;
+        Procedure UpdateUI;
+        Function HostName(Context: TIdContext): String;
+        Procedure SendMessageToClients(Msg: TAppWatcherMessage);
+        Procedure UpdateStringGrid;
+        Procedure SortGrid(Column: Integer);
+        Procedure CloseServer;
+        Procedure UpdateStringGridFilter;
     public
         {Déclarations publiques}
-    end;
+    End;
 
-var
+Var
     FormAppWatcherMaster: TFormAppWatcherMaster;
 
-implementation
+Implementation
+
+Uses
+    AppWatcherMaster_Deploy;
 
 {$R *.dfm}
 
-
 //Fonction qui renvoie l'adresse IP locale de la machine
-function GetLocalIP: string;
-type
-    TaPInAddr = array [0 .. 10] of PInAddr; //Tableau de pointeurs vers des adresses IP
+Function GetLocalIP: String;
+Type
+    TaPInAddr = Array[0..10] Of PInAddr; //Tableau de pointeurs vers des adresses IP
     PaPInAddr = ^TaPInAddr; //Pointeur vers le tableau d'adresses IP
-var
-    phe:       PHostEnt; //Structure contenant des informations sur l'hôte (ordinateur)
-    pptr:      PaPInAddr; //Pointeur vers la liste d'adresses IP de l'hôte
-    buffer:    array [0 .. 63] of AnsiChar; //Tampon pour stocker le nom d'hôte
-    I:         Integer; //Variable d'itération
+Var
+    phe: PHostEnt; //Structure contenant des informations sur l'hôte (ordinateur)
+    pptr: PaPInAddr; //Pointeur vers la liste d'adresses IP de l'hôte
+    buffer: Array[0..63] Of AnsiChar; //Tampon pour stocker le nom d'hôte
+    I: Integer; //Variable d'itération
     GInitData: TWSADATA; //Structure pour initialiser l'utilisation de sockets
-begin
+Begin
     //Initialise le résultat à une chaîne vide
     Result := '';
 
     //Initialise la bibliothèque Windows Sockets
 
     WSAStartup($101, GInitData);
-    try
+    Try
         //Récupère le nom de l'hôte local (ordinateur) et le stocke dans le buffer
         GetHostName(buffer, sizeof(buffer));
 
@@ -173,7 +189,7 @@ begin
         phe := GetHostByName(buffer);
 
         //Si l'appel échoue (pas d'information disponible pour l'hôte), quitter la fonction
-        if phe = nil then
+        If phe = Nil Then
             exit;
 
         //Pointe sur la liste d'adresses IP de l'hôte
@@ -181,18 +197,18 @@ begin
 
         //Boucle sur toutes les adresses IP disponibles pour l'hôte
         I := 0;
-        while pptr^[I] <> nil do begin
+        While pptr^[I] <> Nil Do Begin
             //Convertit l'adresse IP au format texte et la stocke dans le résultat
             Result := StrPas(inet_ntoa(pptr^[I]^));
             Inc(I); //Passe à l'adresse suivante
-        end;
+        End;
     Finally
         //Libère les ressources utilisées par la bibliothèque Windows Sockets
-            WSACleanup;
-    end;
-end;
+        WSACleanup;
+    End;
+End;
 
-procedure TAppRec.init(Msg: TAppWatcherMessage; Context: TIdContext);
+Procedure TAppRec.init(Msg: TAppWatcherMessage; Context: TIdContext);
 Begin
     AppName := Msg.AppName;
     AppPath := ExtractFilePath(Msg.AppPath);
@@ -200,98 +216,94 @@ Begin
     ClientName := GStack.HostByAddress(ClientIp);
     UserName := Msg.UserName;
     AppHandle := Msg.Handle;
-end;
+End;
 
-class operator TAppRec.Equal(const A, B: TAppRec): Boolean;
-begin
-    Result := (A.ClientIp = B.ClientIp) and
-        (A.AppHandle = B.AppHandle);
-end;
+Class Operator TAppRec.Equal(Const A, B: TAppRec): Boolean;
+Begin
+    Result := (A.ClientIp = B.ClientIp) And
+    (A.AppHandle = B.AppHandle);
+End;
 
-Function TFormAppWatcherMaster.HostName(Context: TIdContext): string;
-begin
-    try
-            Result := Context.Binding.PeerIP + ' = ' + GStack.HostByAddress(Context.Binding.PeerIP);
-    except
-            Result := Context.Binding.PeerIP;
-    end;
+Function TFormAppWatcherMaster.HostName(Context: TIdContext): String;
+Begin
+    Try
+        Result := Context.Binding.PeerIP + ' = ' + GStack.HostByAddress(Context.Binding.PeerIP);
+    Except
+        Result := Context.Binding.PeerIP;
+    End;
 
 End;
 
-function TFormAppWatcherMaster.ContainsApp(const App: TAppRec): Boolean;
-var
+Function TFormAppWatcherMaster.ContainsApp(Const App: TAppRec): Boolean;
+Var
     ExistingApp: TAppRec;
-begin
+Begin
     Result := False;
-    for ExistingApp in FAppList do
-        if (ExistingApp = App) then
+    For ExistingApp In FAppList Do
+        If (ExistingApp = App) Then
             exit(True); //Dès qu'on trouve un match, on sort immédiatement
-end;
+End;
 
-procedure TFormAppWatcherMaster.FormCreate(Sender: TObject);
-var
-    LangValue, ServerIP, ServerIPini: string;
-    Ini:                              TIniFile;
-    IniFilePathName, Msg:             string;
-    DoClose:                          Boolean;
-begin
+Procedure TFormAppWatcherMaster.FormCreate(Sender: TObject);
+Var
+    LangValue, ServerIP, ServerIPini: String;
+    Ini: TIniFile;
+    Msg: String;
+    DoClose: Boolean;
+Begin
     DoClose := False;
     FIsFirstLoad := True;
     FSelColumn := 0;
     FSortColumn := 0;
 
-    try
-        //🔹 Vérification des paramètres en ligne de commande (--lang fr ou --lang en)
-        if FindCmdLineSwitch('lang', LangValue, True, [clstValueNextParam, clstValueAppended]) then
-        begin
+    Try
+        //🔹 Vérification des paramètres en ligne de commande (-lang:fr ou -lang:en)
+        If FindCmdLineSwitch('lang', LangValue, True, [clstValueNextParam, clstValueAppended]) Then Begin
             LangValue := LowerCase(LangValue);
-            if (LangValue <> 'fr') and (LangValue <> 'en') then
+            If (LangValue <> 'fr') And (LangValue <> 'en') Then
                 FLang := LangFr; //🔴 Sécurisation : éviter une langue inconnue
-        end
-        else
+        End Else
             FLang := LangFr;
 
         //🔹 Trouver le fichier de configuration
-        IniFilePathName := FindConfigPath(AppWatcherIniFileNAme);
+        FIniFilePathName := FindConfigPath(AppWatcherIniFileNAme);
 
-        if IniFilePathName = '' then
-        begin
+        If FIniFilePathName = '' Then Begin
             //Le fichier INI est introuvable
-            if FLang = LangEn then
+            If FLang = LangEn Then
                 Msg := format(MsgIniFileNotFoundEn, [AppWatcherIniFileNAme])
-            else
+            Else
                 Msg := format(MsgIniFileNotFoundFr, [AppWatcherIniFileNAme]);
 
             MessageDlg(Msg, mtError, [mbok], 0);
             DoClose := True;
-        end;
+        End;
 
         FLanguageManager := TAppLangManager.Create(FLang);
 
         //🔹 Chargement de la langue
         //🔴 Si le fichier est introuvable, afficher un message et quitter
-        if not FLanguageManager.LoadLanguage(FLang) then
-        begin
+        If Not FLanguageManager.LoadLanguage(FLang) Then Begin
             //Le fichier INI est introuvable
-            if FLang = LangEn then
+            If FLang = LangEn Then
                 Msg := format(MsgIniFileNotFoundEn, [AppWatcherIniFileNAme])
-            else
+            Else
                 Msg := format(MsgIniFileNotFoundFr, [AppWatcherIniFileNAme]);
             MessageDlg(Msg, mtError, [mbok], 0);
             DoClose := True;
             FreeAndNil(FLanguageManager);
-        end;
+        End;
 
-        if DoClose then
+        If DoClose Then
             Application.terminate;
 
         FAppList := TList<TAppRec>.Create(TDelegatedComparer<TAppRec>.Create(
-            function(const Left, Right: TAppRec): Integer
-            begin
+            Function(Const Left, Right: TAppRec): Integer
+            Begin
                 Result := CompareText(Left.ClientName, Right.ClientName);
-                if Result = 0 Then
+                If Result = 0 Then
                     Result := CompareText(Left.AppName, Right.AppName);
-            end));
+            End));
 
         FAppListLock := TCriticalSection.Create; //🔒 Création du verrou
 
@@ -299,81 +311,82 @@ begin
 
         IdTCPServer1.Active := False; //le serveur est bien désactivé
 
-        Ini := TIniFile.Create(IniFilePathName);
-        try
+        FLastIniModified := TFile.GetLastWriteTime(FIniFilePathName);
+        Ini := TIniFile.Create(FIniFilePathName);
+        Try
             //Charger l'IP du serveur et le port
             ServerIPini := Ini.ReadString('MasterConfig', 'ServerIP', '127.0.0.1');
             ServerIP := GetLocalIP;
             //Si l'adresse dans le fichier ini ne correspond pas à l'IP alors on l'écrase
             //De cette manière les clients se connecterons au serveur en cours
             //Attention car c'est le dernier serveur lancé qui prend la main
-            if ServerIP <> ServerIPini Then
+            If ServerIP <> ServerIPini Then
                 Ini.WriteString('MasterConfig', 'ServerIP', ServerIP);
 
-        finally
-                Ini.Free;
-        end;
+        Finally
+            Ini.Free;
+        End;
 
         IdTCPServer1.Active := True; //Activation du serveur après la configuration
     Finally
-            FIsFirstLoad := False;
-    end;
-end;
+        FIsFirstLoad := False;
+    End;
+End;
 
-procedure TFormAppWatcherMaster.CloseServer;
-var
-    Context:     TIdContext;
+Procedure TFormAppWatcherMaster.CloseServer;
+Var
+    Context: TIdContext;
     ContextList: TList<TIdContext>;
-begin
+Begin
     //🔹 Empêcher de nouvelles connexions
     IdTCPServer1.StopListening;
 
     //🔹 Fermer toutes les connexions en cours
     ContextList := TList<TIdContext>(IdTCPServer1.Contexts.LockList);
-    try
-        for Context in ContextList do
-        begin
-            try
-                    Context.Connection.Disconnect;
-            except
+    Try
+        For Context In ContextList Do Begin
+            Try
+                Context.Connection.Disconnect;
+            Except
                 //Ignorer toute exception lors de la fermeture
-            end;
-        end;
-    finally
-            IdTCPServer1.Contexts.UnlockList;
-    end;
+            End;
+        End;
+    Finally
+        IdTCPServer1.Contexts.UnlockList;
+    End;
 
     //🔹 Désactiver le serveur une fois que tout est terminé
     IdTCPServer1.Active := False;
-end;
+End;
 
-procedure TFormAppWatcherMaster.FormClose(Sender: TObject; var Action: TCloseAction);
-var
-    ClientIp: string;
-    Context:  TIdContext;
+Procedure TFormAppWatcherMaster.FormClose(Sender: TObject; Var Action: TCloseAction);
+Var
+    ClientIp: String;
+    Context: TIdContext;
 
-begin
+Begin
     TimerupdateClient.enabled := False;
     //🔴 Arrêt propre du serveur avant destruction
     CloseServer;
 
     FAppListLock.Enter; //🔒 Bloque l'accès pendant la destruction
-    try
-            FAppList.Free;
-    finally
+    Try
+        FAppList.Free;
+    Finally
         FAppListLock.Leave; //🔓 Libère le verrou après destruction
         FAppListLock.Free; //🔥 Supprime l'objet de verrouillage
-    end;
+    End;
 
     MemoLogs.Lines.Add(FLanguageManager.GetMessage('MASTER', 'SERVER_STOPPED'));
     FreeAndNil(FLanguageManager);
-end;
+    FreeAndNil(FormDeployManager);
+End;
 
 Function SQLLike(Const Pattern, Text: String): Boolean;
 Var
     RegexPattern: String;
 Begin
-    if (trim(Pattern) = '') or (trim(Pattern) = '%') then
+    If (trim(Pattern) = '') Or (trim(Pattern) = '%') Then
         exit(True);
 
     RegexPattern := '^' + TRegEx.Escape(Pattern) + '$';
@@ -387,41 +400,54 @@ Begin
     Result := TRegEx.IsMatch(Text, RegexPattern, [roIgnoreCase]);
 End;
 
-procedure TFormAppWatcherMaster.UpdateStringGrid;
-var
-    idxGrid, idxApp, FilteredCount: Integer;
+Procedure TFormAppWatcherMaster.UpdateStringGrid;
+Var
+    idxGrid, idxApp, FilteredCount, i: Integer;
+    FilteredList: TList<String>;
+    IsFiltered: Boolean;
 
-    function filterAccept(I: Integer): Boolean;
-    begin
-        Result := SQLLike(StringGridApp.Cells[0, 1], FAppList[I].ClientIp) and
-            SQLLike(StringGridApp.Cells[1, 1], FAppList[I].ClientName) and
-            SQLLike(StringGridApp.Cells[2, 1], FAppList[I].UserName) and
-            SQLLike(StringGridApp.Cells[3, 1], FAppList[I].AppName) and
-            SQLLike(StringGridApp.Cells[4, 1], FAppList[I].AppHandle.ToString) and
-            SQLLike(StringGridApp.Cells[5, 1], FAppList[I].AppPath)
-            ;
-    end;
+    Function filterAccept(I: Integer): Boolean;
+    Begin
+        Result := SQLLike(StringGridApp.Cells[0, 1], FAppList[I].ClientIp) And
+        SQLLike(StringGridApp.Cells[1, 1], FAppList[I].ClientName) And
+        SQLLike(StringGridApp.Cells[2, 1], FAppList[I].UserName) And
+        SQLLike(StringGridApp.Cells[3, 1], FAppList[I].AppName) And
+        SQLLike(StringGridApp.Cells[4, 1], FAppList[I].AppHandle.ToString) And
+        SQLLike(StringGridApp.Cells[5, 1], FAppList[I].AppPath);
+        If IsFiltered Then
+            Result := Result And
+            FilteredList.Contains(LowerCase(FAppList[I].AppName));
 
-begin
+    End;
+
+Begin
     //Désactiver les mises à jour visuelles pendant la mise à jour du contenu
     StringGridApp.BeginUpdate;
-    try
+    Try
         FAppListLock.Enter; //🔒 Protection contre l'accès concurrent
-        try
+        Try
+            FilteredList := TList<String>.Create;
 
             //Efface tout sauf l’en-tête
             //🔄 Ajuster le nombre de lignes (au moins 2 pour éviter le bug)
-            if FAppList.Count = 0 then
-            begin
+            If FAppList.Count = 0 Then Begin
                 StringGridApp.RowCount := 2;
                 //StringGridApp.Rows[1].Clear; //Garde une ligne vide si la liste est vide
                 exit;
-            end;
+            End;
+
+            // Collecte les fichiers cochés dans AppList
+
+            IsFiltered := false;
+            If (BtnToggleFilter.State = tssOn) And Assigned(FormDeployManager) And (FormDeployManager.AppList.Items.Count > 0) Then Begin
+                IsFiltered := true;
+                FormDeployManager.GetAppCheckedList(FilteredList);
+            End;
 
             //🔹 Étape 1 : Compter combien de lignes seront affichées après filtrage
             FilteredCount := 0;
-            for idxApp := 0 to FAppList.Count - 1 do
-                if filterAccept(idxApp) then
+            For idxApp := 0 To FAppList.Count - 1 Do
+                If filterAccept(idxApp) Then
                     Inc(FilteredCount);
 
             //🔹 Étape 2 : Définir RowCount en une seule fois
@@ -429,9 +455,8 @@ begin
 
             //Remplit le `StringGrid` avec les données triées
             idxGrid := 2;
-            for idxApp := 0 to FAppList.Count - 1 do
-            begin
-                if filterAccept(idxApp) then begin
+            For idxApp := 0 To FAppList.Count - 1 Do Begin
+                If filterAccept(idxApp) Then Begin
                     StringGridApp.Cells[0, idxGrid] := FAppList[idxApp].ClientIp;
                     StringGridApp.Cells[1, idxGrid] := FAppList[idxApp].ClientName;
                     StringGridApp.Cells[2, idxGrid] := FAppList[idxApp].UserName;
@@ -440,214 +465,231 @@ begin
                     StringGridApp.Cells[4, idxGrid] := FAppList[idxApp].AppHandle.ToString;
                     StringGridApp.Cells[5, idxGrid] := FAppList[idxApp].AppPath;
                     Inc(idxGrid);
-                end;
-            end;
+                End;
+            End;
 
             StringGridApp.Row := 1; //Repositionne sur la ligne de filtrage après tri
             StringGridApp.Col := FSelColumn; //Garde la colonne sélectionnée
-        finally
-                FAppListLock.Leave; //🔓 Libère le verrou après mise à jour
-        end;
-    finally
+        Finally
+            FAppListLock.Leave; //🔓 Libère le verrou après mise à jour
+        End;
+    Finally
         //Réactiver les mises à jour visuelles après la mise à jour du contenu
-            StringGridApp.EndUpdate;
-    end;
-end;
+        StringGridApp.EndUpdate;
+        FreeAndNil(FilteredList);
+    End;
+End;
 
-procedure TFormAppWatcherMaster.SortGrid(Column: Integer);
-begin
+Procedure TFormAppWatcherMaster.BtnToggleFilterClick(Sender: TObject);
+// Filter avec la liste des applications à déployer
+Begin
+    If FAppList.Count = 0 Then
+        BtnListAppsClick(Nil)
+    Else
+        UpdateStringGrid;
+End;
 
-    if (FSortColumn = Column) and (FSortAscending = not FSortAscending) then
+Procedure TFormAppWatcherMaster.UpdateStringGridFilter;
+Begin
+
+    If (BtnToggleFilter.State = tssOn) Then
+        UpdateStringGrid
+    Else
+        BtnToggleFilter.State := tssOn;
+
+End;
+
+Procedure TFormAppWatcherMaster.SortGrid(Column: Integer);
+Begin
+
+    If (FSortColumn = Column) And (FSortAscending = Not FSortAscending) Then
         exit; //🔄 Évite de trier inutilement
 
     //Inverser le sens si on clique sur la même colonne
-    if FSortColumn = Column then
-        FSortAscending := not FSortAscending
-    else
+    If FSortColumn = Column Then
+        FSortAscending := Not FSortAscending
+    Else
         FSortAscending := True; //Par défaut, tri ascendant
 
     FSortColumn := Column;
 
     //Trier la liste FAppList
     FAppList.Sort(TComparer<TAppRec>.Construct(
-        function(const Left, Right: TAppRec): Integer
-        begin
-            case Column of
-                0: begin
+        Function(Const Left, Right: TAppRec): Integer
+        Begin
+            Case Column Of
+                0: Begin
                         Result := CompareText(Left.ClientIp, Right.ClientIp);
-                        If Result = 0 then
+                        If Result = 0 Then
                             Result := CompareText(Left.AppName, Right.AppName);
-                        If Result = 0 then
+                        If Result = 0 Then
                             Result := Left.AppHandle - Right.AppHandle;
-                    end;
-                1: begin
+                    End;
+                1: Begin
                         Result := CompareText(Left.ClientName, Right.ClientName);
-                        If Result = 0 then
+                        If Result = 0 Then
                             Result := CompareText(Left.AppName, Right.AppName);
-                        If Result = 0 then
+                        If Result = 0 Then
                             Result := Left.AppHandle - Right.AppHandle;
-                    end;
+                    End;
 
-                2: begin
+                2: Begin
                         Result := CompareText(Left.UserName, Right.UserName);
-                        If Result = 0 then
+                        If Result = 0 Then
                             Result := CompareText(Left.AppName, Right.AppName);
-                        If Result = 0 then
+                        If Result = 0 Then
                             Result := Left.AppHandle - Right.AppHandle;
-                    end;
+                    End;
 
-                3: begin
+                3: Begin
                         Result := CompareText(Left.AppName, Right.AppName);
-                        If Result = 0 then
+                        If Result = 0 Then
                             Result := Left.AppHandle - Right.AppHandle;
-                    end;
+                    End;
                 4:
                     Result := Left.AppHandle - Right.AppHandle;
-                5: begin
+                5: Begin
                         Result := CompareText(Left.AppPath, Right.AppPath);
-                        if Result = 0 then
+                        If Result = 0 Then
                             Result := CompareText(Left.ClientName, Right.ClientName);
-                    end;
-            else
+                    End;
+            Else
                 Result := 0;
-            end;
+            End;
 
             //Inverser si tri descendant
-            if not FSortAscending then
+            If Not FSortAscending Then
                 Result := -Result;
-        end
+        End
         ));
 
     //Rafraîchir l'affichage
     UpdateStringGrid;
-end;
+End;
 
-procedure TFormAppWatcherMaster.StringGridAppKeyDown(Sender: TObject; var Key:
+Procedure TFormAppWatcherMaster.StringGridAppKeyDown(Sender: TObject; Var Key:
     Word; Shift: TShiftState);
-var
+Var
     I: Integer;
-begin
-    if (Key = VK_ESCAPE) and (StringGridApp.Row = 1) then
-    begin
-        for I := 0 to StringGridApp.ColCount - 1 do
+Begin
+    If (Key = VK_ESCAPE) And (StringGridApp.Row = 1) Then Begin
+        For I := 0 To StringGridApp.ColCount - 1 Do
             StringGridApp.Cells[I, 1] := ''; //Efface toutes les cellules de la ligne de filtre
         UpdateStringGrid;
-    end;
-    if (Key = VK_RETURN) and (StringGridApp.Row = 1) then
-    begin
+    End;
+    If (Key = VK_RETURN) And (StringGridApp.Row = 1) Then Begin
         UpdateStringGrid;
-    end;
+    End;
 
-    if StringGridApp.Row <> 1 then
-    begin
+    If StringGridApp.Row <> 1 Then Begin
         Key := 0;
-    end;
-end;
+    End;
+End;
 
-procedure TFormAppWatcherMaster.StringGridAppKeyPress(Sender: TObject; var Key:
+Procedure TFormAppWatcherMaster.StringGridAppKeyPress(Sender: TObject; Var Key:
     Char);
-begin
-    if StringGridApp.Row <> 1 then
-    begin
+Begin
+    If StringGridApp.Row <> 1 Then Begin
         Key := #0;
-    end;
-end;
+    End;
+End;
 
-procedure TFormAppWatcherMaster.StringGridAppSetEditText(Sender: TObject; ACol,
-    ARow: LongInt; const Value: string);
-begin
-    if ARow = 1 then
+Procedure TFormAppWatcherMaster.StringGridAppSetEditText(Sender: TObject; ACol,
+    ARow: LongInt; Const Value: String);
+Begin
+    If ARow = 1 Then
         FSelColumn := ACol;
-end;
+End;
 
-procedure TFormAppWatcherMaster.StringGridAppDblClick(Sender: TObject);
-var
+Procedure TFormAppWatcherMaster.StringGridAppDblClick(Sender: TObject);
+Var
     SelectedRow: Integer;
-begin
+Begin
     SelectedRow := StringGridApp.Row; //Récupère la ligne sélectionnée
 
     //Vérifie que l'utilisateur ne clique pas sur l'en-tête (ligne 0)
-    if (SelectedRow > 0) and (SelectedRow < StringGridApp.RowCount) then
-    begin
+    If (SelectedRow > 0) And (SelectedRow < StringGridApp.RowCount) Then Begin
         EditAppName.Text := StringGridApp.Cells[3, SelectedRow];
-    end;
-end;
+    End;
+End;
 
-procedure TFormAppWatcherMaster.StringGridAppFixedCellClick(Sender: TObject;
+Procedure TFormAppWatcherMaster.StringGridAppFixedCellClick(Sender: TObject;
     ACol, ARow: LongInt);
-begin
+Begin
     //if ARow = 0 then //Vérifie qu'on clique bien sur l'en-tête
     //FAppListLock.Enter;
-    try
-        begin
+    Try
+        Begin
             SortGrid(ACol); //Trie en fonction de la colonne
-        end;
-    finally
+        End;
+    Finally
         //FAppListLock.Leave;
-    end;
-end;
+    End;
+End;
 
-procedure TFormAppWatcherMaster.StringGridAppDrawCell(Sender: TObject; ACol,
+Procedure TFormAppWatcherMaster.StringGridAppDrawCell(Sender: TObject; ACol,
     ARow: LongInt; Rect: TRect; State: TGridDrawState);
-var
-    TextRect:       TRect;
-    Flags:          Integer;
-    I:              Integer;
-    posLeft:        Integer;
+Var
+    TextRect: TRect;
+    Flags: Integer;
+    I: Integer;
+    posLeft: Integer;
     IsFilterActive: Boolean;
-    CellText:       string;
-begin
+    CellText: String;
+Begin
     //Récupérer le texte de la cellule
     CellText := StringGridApp.Cells[ACol, ARow];
 
-    if ARow = 0 then //Si c'est la ligne d'en-tête
-    begin
-        StringGridApp.Canvas.Brush.Color := clGray; //Fond gris
-        StringGridApp.Canvas.Font.Color := clWhite; //Texte blanc
-        StringGridApp.Canvas.Font.Style := [fsBold]; //Texte en gras
+    If ARow = 0 Then {//Si c'est la ligne d'en-tête}Begin
 
-    end else if ARow = 1 then //Si c'est la ligne de filtres
-    begin
+        //        StringGridApp.Canvas.Brush.Color := clGray; //Fond gris
+        //        StringGridApp.Canvas.Font.Color := clWhite; //Texte blanc
+        //        StringGridApp.Canvas.Font.Style := [fsBold]; //Texte en gras
+
+    End Else If ARow = 1 Then {//Si c'est la ligne de filtres}Begin
         //Vérifier si un filtre est appliqué
         IsFilterActive := StringGridApp.Cells[ACol, 1] <> '';
         StringGridApp.Canvas.Font.Style := []; //Texte normal
 
-        if IsFilterActive then begin
+        If IsFilterActive Then Begin
             StringGridApp.Canvas.Brush.Color := clWebOrange; //Filtre actif
             StringGridApp.Canvas.Font.Color := clWhite; //Texte noir
 
-        end else begin
+        End Else Begin
             StringGridApp.Canvas.Brush.Color := clInfoBk; //Filtre inactif
             StringGridApp.Canvas.Font.Color := clBlack; //Texte noir
-        end;
+        End;
 
-    end else //Contenu normal
-    begin
+    End Else {//Contenu normal}Begin
         StringGridApp.Canvas.Font.Style := []; //Texte normal
         StringGridApp.Canvas.Brush.Color := clWhite;
         StringGridApp.Canvas.Font.Color := clBlack;
-    end;
+    End;
 
     //Centrage vertical du texte avec `DrawText`
     TextRect := Rect;
     Inc(TextRect.Left, 6);
-    Flags := DT_LEFT or DT_VCENTER or DT_SINGLELINE;
+    Flags := DT_LEFT Or DT_VCENTER Or DT_SINGLELINE;
 
     StringGridApp.Canvas.FillRect(Rect); //Remplissage du fond
     DrawText(StringGridApp.Canvas.Handle, PChar(CellText), Length(CellText), TextRect, Flags);
 
-end;
+End;
 
-procedure TFormAppWatcherMaster.UpdateUI;
-var
-    section: string;
-begin
+Procedure TFormAppWatcherMaster.UpdateUI;
+Var
+    section: String;
+Begin
 
     //🌍 Mise à jour des boutons
     section := 'MASTER_UI';
     Self.caption := FLanguageManager.GetMessage(section, 'TITLE');
 
     BtnListApps.caption := FLanguageManager.GetMessage(section, 'BTN_LIST_APPS');
+    BtnAppCopy.caption := FLanguageManager.GetMessage(section, 'BTN_LIST_DEPLOY');
+    BtnToggleFilter.StateCaptions.CaptionOn := FLanguageManager.GetMessage(section, 'BTN_FILTER_ON');
+    BtnToggleFilter.StateCaptions.CaptionOff := FLanguageManager.GetMessage(section, 'BTN_FILTER_OFF');
+
     BtnStopApp.caption := FLanguageManager.GetMessage(section, 'BTN_STOP_APP');
     BtnStart.caption := FLanguageManager.GetMessage(section, 'BTN_START');
     BtnCancel.caption := FLanguageManager.GetMessage(section, 'BTN_CANCEL');
@@ -671,16 +713,16 @@ begin
     StringGridApp.Cells[3, 0] := FLanguageManager.GetMessage(section, 'STRGRID_APPNAME');
     StringGridApp.Cells[4, 0] := FLanguageManager.GetMessage(section, 'STRGRID_HANDLE');
     StringGridApp.Cells[5, 0] := FLanguageManager.GetMessage(section, 'STRGRID_PATH');
-end;
+End;
 
-procedure TFormAppWatcherMaster.SendMessageToClients(Msg: TAppWatcherMessage);
-var
-    Context:     TIdContext;
+Procedure TFormAppWatcherMaster.SendMessageToClients(Msg: TAppWatcherMessage);
+Var
+    Context: TIdContext;
     ContextList: TList<TIdContext>;
 
-    RefMsg: string;
-begin
-    case Msg.Command of
+    RefMsg: String;
+Begin
+    Case Msg.Command Of
         cmdWHO:
             RefMsg := 'LIST_SENT';
         cmdSTART:
@@ -691,177 +733,206 @@ begin
             RefMsg := 'CANCEL_SENT';
         cmdSTOP_AGENT:
             RefMsg := 'STOP_AGENT_SENT';
-    else
+    Else
         RefMsg := 'UNKNOWN_COMMAND';
-    end;
+    End;
 
     //Verrouiller la liste
     //ContextList := IdTCPServer1.Contexts.LockList;
     ContextList := TList<TIdContext>(IdTCPServer1.Contexts.LockList);
-    try
-        for Context in ContextList do
-        begin
-            try
+    Try
+        For Context In ContextList Do Begin
+            Try
                 Msg.SendMessage(Context.Connection.IOHandler);
                 MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', RefMsg), [HostName(Context), Msg.AppName, IntToStr(Msg.Handle)]));
-            except
-                    MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'ERROR_CONTACTING_CLIENT'), [HostName(Context)]));
-            end;
-        end;
-    finally
-            IdTCPServer1.Contexts.UnlockList; //Déverrouiller proprement après la boucle
-    end;
+            Except
+                MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'ERROR_CONTACTING_CLIENT'), [HostName(Context)]));
+            End;
+        End;
+    Finally
+        IdTCPServer1.Contexts.UnlockList; //Déverrouiller proprement après la boucle
+    End;
 
-end;
+End;
 
-procedure TFormAppWatcherMaster.BtnListAppsClick(Sender: TObject);
-var
+Procedure TFormAppWatcherMaster.BtnListAppsClick(Sender: TObject);
+// Réinitialiser la liste des applications en cours d'execution
+Var
     Msg: TAppWatcherMessage;
-begin
-    //🗑️ 1. Réinitialiser la liste des applications connues
-
+Begin
     FAppList.Clear;
     UpdateStringGrid;
     Msg.init(0, cmdWHO, '', '', 0); //Commande LIST
     SendMessageToClients(Msg);
 
-end;
+End;
 
-procedure TFormAppWatcherMaster.UpdateClientList;
-var
+Procedure TFormAppWatcherMaster.UpdateClientList;
+Var
     ContextList: TList<TIdContext>;
-    Context:     TIdContext;
-    Liste:       string;
-    s:           string;
-begin
+    Context: TIdContext;
+    Liste: String;
+    s: String;
+Begin
     Liste := '';
     //ListViewClients.Clear;
 
     ContextList := TList<TIdContext>(IdTCPServer1.Contexts.LockList);
-    try
-        for Context in ContextList do //Boucle classique sans `in`
-        begin
+    Try
+        For Context In ContextList Do {//Boucle classique sans `in`}Begin
             Liste := Liste + HostName(Context) + #13#10;
             //ListViewClients.Lines.Add(HostName(Context));
-        end;
-    finally
-            IdTCPServer1.Contexts.UnlockList; //Toujours libérer la liste !
-    end;
+        End;
+    Finally
+        IdTCPServer1.Contexts.UnlockList; //Toujours libérer la liste !
+    End;
 
-    if Liste <> '' Then
+    If Liste <> '' Then
         setlength(Liste, Length(Liste) - 2);
-    if ListViewClients.Lines.Text <> Liste then begin
+    If ListViewClients.Lines.Text <> Liste Then Begin
         ListViewClients.Lines.Text := Liste;
         s := FLanguageManager.GetMessage('MASTER', 'CLIENTS_LIST_UPDATED');
         MemoLogs.Lines.Add(s);
-    end;
-end;
+    End;
+End;
 
-procedure TFormAppWatcherMaster.BtnStartClick(Sender: TObject);
-var
+Procedure TFormAppWatcherMaster.BtnStartClick(Sender: TObject);
+Var
     Msg: TAppWatcherMessage;
-begin
+Begin
     Msg.init(0, cmdSTART, '', '', 0); //Commande START
     SendMessageToClients(Msg);
-end;
+End;
 
-procedure TFormAppWatcherMaster.BtnStopAppClick(Sender: TObject);
-var
-    Msg:     TAppWatcherMessage;
-    AppName: string;
-begin
+Procedure TFormAppWatcherMaster.BtnStopAppClick(Sender: TObject);
+Var
+    Msg: TAppWatcherMessage;
+    AppName: String;
+Begin
     AppName := trim(EditAppName.Text);
-    if AppName = '' then
-    begin
+    If AppName = '' Then Begin
         MemoLogs.Lines.Add(FLanguageManager.GetMessage('MASTER', 'ENTER_PROGRAM_NAME'));
         exit;
-    end;
+    End;
 
     Msg.init(0, cmdSTOP, AppName, '', RzNumericEdit1.IntValue); //Commande STOP
     SendMessageToClients(Msg);
-end;
+End;
 
-procedure TFormAppWatcherMaster.BtnAgentStopClick(Sender: TObject);
-var
+Procedure TFormAppWatcherMaster.BtnAgentStopClick(Sender: TObject);
+Var
     Msg: TAppWatcherMessage;
-begin
-    if MessageDlg(FLanguageManager.GetMessage('MASTER', 'STOP_AGENT_REQUEST'), mtConfirmation, [mbyes, mbNo], 0, mbNo) = mryes then
-    Begin
+Begin
+    If MessageDlg(FLanguageManager.GetMessage('MASTER', 'STOP_AGENT_REQUEST'), mtConfirmation, [mbyes, mbNo], 0, mbNo) = mryes Then Begin
         Msg.init(0, cmdSTOP_AGENT, '', '', 0); //Commande STOP
         SendMessageToClients(Msg);
-    end;
-end;
+    End;
+End;
 
-procedure TFormAppWatcherMaster.BtnCancelClick(Sender: TObject);
-var
+Procedure TFormAppWatcherMaster.BtnAppCopyClick(Sender: TObject);
+Begin
+    If Not Assigned(FormDeployManager) Then
+        FormDeployManager := TFormDeployManager.Create(Nil);
+
+    FormDeployManager.Execute(FLanguageManager);
+End;
+
+Procedure TFormAppWatcherMaster.BtnCancelClick(Sender: TObject);
+Var
     Msg: TAppWatcherMessage;
-begin
+Begin
     Msg.init(0, cmdCANCEL, '', '', 0); //Commande CANCEL
     SendMessageToClients(Msg);
-end;
+End;
 
-procedure TFormAppWatcherMaster.IdTCPServer1Connect(AContext: TIdContext);
-begin
+Procedure TFormAppWatcherMaster.IdTCPServer1Connect(AContext: TIdContext);
+Begin
     //✅ Forcer l'UI à se mettre à jour dans le thread principal
-    TThread.Queue(nil,
-        procedure
-        begin
+    TThread.Queue(Nil,
+        Procedure
+        Begin
             MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'CLIENT_CONNECTED'), [HostName(AContext)]));
-        end);
-end;
+        End);
+    sleep(50);
+End;
 
-procedure TFormAppWatcherMaster.IdTCPServer1Disconnect(AContext: TIdContext);
+Procedure TFormAppWatcherMaster.IdTCPServer1Disconnect(AContext: TIdContext);
 Var
-    Name: string;
-begin
+    Name: String;
+Begin
     Name := HostName(AContext);
-    TThread.Queue(nil,
-        procedure
-        begin
+    TThread.Queue(Nil,
+        Procedure
+        Begin
             MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'CLIENT_DISCONNECTED'), [Name]));
-        end);
-end;
+        End);
+End;
 
-procedure TFormAppWatcherMaster.TimerupdateClientTimer(Sender: TObject);
-begin
-    UpdateClientList; //Met à jour la liste des clients
-end;
+Procedure TFormAppWatcherMaster.TimerupdateClientTimer(Sender: TObject);
+Var
+    ini: TIniFile;
+    ServerIPini, ServerIP: String;
+Begin
+    // Vérifier si le MASTER est toujour MASTER
+    If FileExists(FIniFilePathName) And (FLastIniModified <> TFile.GetLastWriteTime(FIniFilePathName)) Then Begin
+        FLastIniModified := TFile.GetLastWriteTime(FIniFilePathName);
+        Ini := TIniFile.Create(FIniFilePathName);
+        Try
+            //Charger l'IP du serveur et le port
+            ServerIPini := Ini.ReadString('MasterConfig', 'ServerIP', '127.0.0.1');
+            ServerIP := GetLocalIP;
+            //Si l'adresse dans le fichier ini ne correspond pas à l'IP alors celà veux dire que ce serveur à perdu le contrôle
 
-procedure TFormAppWatcherMaster.IdTCPServer1Execute(AContext: TIdContext);
+            If ServerIP <> ServerIPini Then
+                MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'LOST_CONTROL'), [ServerIPini]));
+
+        Finally
+            Ini.Free;
+        End;
+    End;
+    Try
+        TimerupdateClient.Enabled := false;
+
+        UpdateClientList; //Met à jour la liste des clients
+    Finally
+        TimerupdateClient.Enabled := true;
+    End;
+End;
+
+Procedure TFormAppWatcherMaster.IdTCPServer1Execute(AContext: TIdContext);
 //Procedure de reception des messages depuis les AGENTS
-var
+Var
     ReceivedMsg: TAppWatcherMessage;
 
-begin
+Begin
 
-    try
-        if not ReadMessage(AContext.Connection.IOHandler, ReceivedMsg) then begin
+    Try
+        If Not ReadMessage(AContext.Connection.IOHandler, ReceivedMsg) Then Begin
             sleep(300);
             exit;
-        end;
+        End;
 
-        TThread.Queue(nil,
-            procedure
-            var
+        TThread.Queue(Nil,
+            Procedure
+            Var
                 App: TAppRec;
                 I: Integer;
-            begin
-                case ReceivedMsg.Command of
-                    cmdWHO_REPLY:
-                        begin
+            Begin
+                Case ReceivedMsg.Command Of
+                    cmdWHO_REPLY: Begin
                             App.init(ReceivedMsg, AContext);
 
                             //📝 Mettre à jour la liste en mémoire
                             FAppListLock.Enter;
-                            try
-                                if not ContainsApp(App) then
+                            Try
+                                If Not ContainsApp(App) Then
                                     FAppList.Add(App);
 
                                 //🔽 Créer une liste triable à partir des valeurs du dictionnaire
                                 FAppList.Sort;
-                            finally
-                                    FAppListLock.Leave; //🔓 Libère le verrou
-                            end;
+                            Finally
+                                FAppListLock.Leave; //🔓 Libère le verrou
+                            End;
 
                             //🔄 Rafraîchir l'affichage
                             UpdateStringGrid;
@@ -869,70 +940,68 @@ begin
                             MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'WHO_REPLY'),
                                 [HostName(AContext), ReceivedMsg.AppName, IntToStr(ReceivedMsg.Handle)]));
 
-                        end;
+                        End;
                     cmdACK:
                         MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'ACK_REPLY'),
                             [HostName(AContext), ReceivedMsg.AppName, IntToStr(ReceivedMsg.Handle)]));
                     cmdNACK:
                         MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'NACK_REPLY'),
                             [HostName(AContext), ReceivedMsg.AppName, IntToStr(ReceivedMsg.Handle)]));
-                else
+                Else
                     MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'UNKNOW_REPLY'),
                         [HostName(AContext), ReceivedMsg.AppName, IntToStr(ReceivedMsg.Handle)]));
-                end;
+                End;
 
-            end);
-    except
-        on E: Exception do
-        begin
-            TThread.Queue(nil,
-                procedure
-                begin
+            End);
+
+    Except
+        On E: Exception Do Begin
+            TThread.Queue(Nil,
+                Procedure
+                Begin
                     MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'ERROR_RECEIVING_ANSWER'), [E.Message]));
-                end);
-        end;
-    end;
-end;
+                End);
+        End;
+    End;
+End;
 
-procedure TFormAppWatcherMaster.RdioEnglishClick(Sender: TObject);
-begin
-    if FIsFirstLoad then
+Procedure TFormAppWatcherMaster.RdioEnglishClick(Sender: TObject);
+Begin
+    If FIsFirstLoad Then
         exit;
 
     FLang := LangEn;
     FLanguageManager.LoadLanguage(LangEn);
     UpdateUI
-end;
+End;
 
-procedure TFormAppWatcherMaster.RdioFrenchClick(Sender: TObject);
-begin
-    if FIsFirstLoad then
+Procedure TFormAppWatcherMaster.RdioFrenchClick(Sender: TObject);
+Begin
+    If FIsFirstLoad Then
         exit;
 
     FLang := LangFr;
     FLanguageManager.LoadLanguage(LangFr);
     UpdateUI
-end;
+End;
 
-procedure TFormAppWatcherMaster.StringGridAppMouseMove(Sender: TObject; Shift:
+Procedure TFormAppWatcherMaster.StringGridAppMouseMove(Sender: TObject; Shift:
     TShiftState; X, Y: Integer);
-var
-    Col, Row:           Integer;
-    CellRect:           TRect;
-    CellText, HintText: string;
-    MousePos:           TPoint;
-begin
+Var
+    Col, Row: Integer;
+    CellRect: TRect;
+    CellText, HintText: String;
+    MousePos: TPoint;
+Begin
     //Déterminer la cellule sous la souris
     StringGridApp.MouseToCell(X, Y, Col, Row);
 
     //Vérifier si la cellule est valide
-    if (Col >= 0) and (Row >= 0) then
-    begin
+    If (Col >= 0) And (Row >= 0) Then Begin
         StringGridApp.MouseToCell(X, Y, Col, Row);
 
         //N'affiche le hint que si on change de cellule
-        if (Col <> FLastHintCol) or (Row <> FLastHintRow) then
-        begin
+        If (Col <> FLastHintCol) Or (Row <> FLastHintRow) Then Begin
             FLastHintCol := Col;
             FLastHintRow := Row;
             //Appelle la méthode précédente ou adapte le code ici
@@ -950,8 +1019,9 @@ begin
             Application.HideHint;
             StringGridApp.Hint := HintText;
             Application.ActivateHint(MousePos);
-        end;
-    end;
-end;
+        End;
+    End;
+End;
 
-end.
+End.
+

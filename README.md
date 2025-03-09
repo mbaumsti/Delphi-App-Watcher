@@ -4,8 +4,8 @@
 
 **AppWatcher** is a **Delphi component** that allows an application to be **remotely controlled** by a dedicated **supervisor** application, included in the solution.  
 
-It is designed for **developers and IT administrators** who need to **gracefully stop**,  
-**replace**, and **restart applications** across multiple machines, without using **RDP** or manually accessing each computer.
+It is designed for **developers and IT administrators** who need to **cleanly shut down**,
+**replace**, **restart applications** and now **deploy** applications, without using **RDP** or physically accessing each computer.
 
 **✅ Developed in Delphi 12.2**  
 
@@ -18,6 +18,7 @@ It is designed for **developers and IT administrators** who need to **gracefully
 ✔️ **Easily stop running applications on remote machines**  
 ✔️ **Deploy application updates with minimal disruption to users**  
 ✔️ **Notify users before stopping an application**  
+✔️ **Automatically copy apps from one source to specific destinations**
 ✔️ **Restart applications automatically after an update**  
 ✔️ **Avoid using RDP (Remote Desktop) or physically moving between machines**  
 ✔️ **Minimize downtime and streamline the deployment process**  
@@ -26,6 +27,7 @@ It is designed for **developers and IT administrators** who need to **gracefully
 
 ## 🚀 Features
 
+✅ **New (v2.0): Application Deployment**: Automatic and intelligent copy of executable files.  
 ✅ **Stop applications remotely** with a simple command.  
 ✅ **Define a countdown before stopping an application** to notify users.  
 ✅ **Restart applications automatically** after an update.  
@@ -48,6 +50,8 @@ AppWatcher consists of **three main components**:
    - Supports **cancellation of a STOP request** before the countdown expires.  
    - Can request **all managed applications to restart** after an update.  
    - Can request all **Agents to shut down**.  
+   - **New (v2.0): Manages the list of applications to deploy** via a dedicated interface.
+   - **New (v2.0): Sorting and filtering** to display only the applications to deploy.
 
 2. **🖥️ AppWatcher Agent** – A **lightweight service** running on remote machines that:  
    
@@ -69,8 +73,8 @@ AppWatcher consists of **three main components**:
 
 ## 📦 Installation
 
-👉 Precompiled binaries are available in the v1.3.4 release for quick testing without compilation.
-https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v1.3.4
+👉 **Precompiled binaries are available in v2.0.0 for quick testing without compilation.**
+📌 [Download here](https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v2.0.0)
 
 ### 🔹 **1. Setting Up the Master Server**
 
@@ -138,16 +142,17 @@ To make a **Delphi application controllable** by AppWatcher, follow these steps:
    
 ---
 
-### 🔹 **4. Managing Configuration Files (`.ini`)**
+### 🔹 **4. Configuration file management (`.ini and .json`)**
 
-AppWatcher **relies on INI files** for configuration. These files must be **accessible to the application** to ensure proper operation.  
+AppWatcher **uses INI files** for its configuration and an **AppWatcher.json** file (to store the list of applications to deploy). These files must be **accessible by the application** to ensure proper operation.
 
-📌 Where does AppWatcher look for INI files?
-✔ In the application's execution path (e.g., C:\Program Files\AppWatcher\).
-✔ Inside a Config\ subdirectory of the execution path (e.g., C:\Program Files\AppWatcher\Config\).
-✔ Following Windows shortcuts (.lnk): If an .ini file is not found directly, AppWatcher checks if a shortcut (.lnk) with the same name exists and follows its target.
+📌 Where does AppWatcher look for files?  
+ 
+✔ **In the application's runtime directory** (e.g. `C:\Program Files\AppWatcher\`).   
+✔ **In a `Config\` subdirectory of the runtime directory** (e.g. `C:\Program Files\AppWatcher\Config\`).  
+✔ **By following Windows shortcuts (`.lnk`)**: If a `.ini` file is not found directly, AppWatcher checks if a `.lnk` shortcut with the same name exists and follows its target.
 
-💡 If **`AppWatcher.ini` is missing**, the application  display an error message.  
+💡 If **`AppWatcher.ini` is missing**, the application will display an error message. 
 
 ---
 

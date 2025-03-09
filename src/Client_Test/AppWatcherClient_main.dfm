@@ -1,7 +1,7 @@
 object FormAppWatcherClient: TFormAppWatcherClient
   Left = 0
   Top = 0
-  Caption = 'FormAppWatcherClient - Second'
+  Caption = 'FormAppWatcherClient - Main'
   ClientHeight = 441
   ClientWidth = 624
   Color = clBtnFace
@@ -11,6 +11,7 @@ object FormAppWatcherClient: TFormAppWatcherClient
   Font.Name = 'Segoe UI'
   Font.Style = []
   OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
   TextHeight = 15
   object Memo1: TMemo
     AlignWithMargins = True
@@ -32,6 +33,24 @@ object FormAppWatcherClient: TFormAppWatcherClient
     Caption = 'Second Form'
     TabOrder = 1
     OnClick = Button1Click
+  end
+  object RdioStopAccepted: TRadioButton
+    Left = 209
+    Top = 413
+    Width = 113
+    Height = 17
+    Caption = 'STOP Accepted'
+    TabOrder = 2
+  end
+  object rdioStopRefused: TRadioButton
+    Left = 325
+    Top = 414
+    Width = 113
+    Height = 17
+    Caption = 'STOP Refused'
+    Checked = True
+    TabOrder = 3
+    TabStop = True
   end
   object AppWatcherClient1: TAppWatcherClient
     Memo = Memo1

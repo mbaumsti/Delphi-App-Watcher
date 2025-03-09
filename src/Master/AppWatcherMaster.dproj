@@ -71,6 +71,7 @@
         <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
         <SanitizedProjectName>AppWatcherMaster</SanitizedProjectName>
+        <Custom_Styles>&quot;Slate Classico|VCLSTYLE|$(BDSCOMMONDIR)\Styles\SlateClassico.vsf&quot;;&quot;Turquoise Gray|VCLSTYLE|$(BDSCOMMONDIR)\Styles\TurquoiseGray.vsf&quot;;&quot;Wedgewood Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\WedgewoodLight.vsf&quot;</Custom_Styles>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>JvNet;Calendrier;RaizeComponentsVcl;vclwinx;DataSnapServer;fmx;vclie;DbxCommonDriver;bindengine;IndyIPCommon;VCLRESTComponents;DBXMSSQLDriver;FireDACCommonODBC;emsclient;appanalytics;IndyProtocols;vclx;Skia.Package.RTL;GardePos;dbxcds;vcledge;DBXFirebirdDriver;JvAppFrm;FireDACSqliteDriver;DbxClientDriver;JclVcl;soapmidas;Jcl;dbexpress;JvManagedThreads;inet;GesComp;vcltouch;JvDB;FireDACDBXDriver;fmxdae;SysToolsDR;JvCustom;CustomIPTransport;FireDACMSSQLDriver;JvSystem;EssentialsDR;JvControls;RDOpenAI;JvCrypt;JvJans;EacQueryFileRunProj;JvMM;IndySystem;JvGlobus;JclContainers;JvPageComps;vclFireDAC;FireDACCommon;DataSnapServerMidas;FireDACODBCDriver;emsserverresource;IcsFmxNewRun;divers;bindcompdbx;rtl;FireDACMySQLDriver;DBXSqliteDriver;IcsCommonNewRun;VirtualTreesDR;DBXSybaseASEDriver;JvRuntimeDesign;JvXPCtrls;vclimg;DataSnapFireDAC;inetdbxpress;FireDAC;JvDocking;JvDlgs;xmlrtl;dsnap;JvCmp;FireDACDb2Driver;DBXOracleDriver;DBXInformixDriver;fmxobj;bindcompvclsmp;DataSnapNativeClient;DatasnapConnectorsFreePascal;NiceGridXE;emshosting;FireDACCommonDriver;IndyIPClient;bindcompvclwinx;emsedge;bindcompfmx;SysToolsDBDR;JvBands;inetdb;FireDACASADriver;OrpheusDBDR;vclactnband;Balloon_pck;fmxFireDAC;EacDatabaseEnviron;EacQueryFileDesignProj;FireDACInfxDriver;DBXMySQLDriver;VclSmp;DataSnapCommon;JvPascalInterpreter;SimpleGraphPck;fmxase;JvPluginSystem;DBXOdbcDriver;JvTimeFramework;dbrtl;FireDACOracleDriver;Skia.Package.FMX;EacAppStateSaverProj;FireDACMSAccDriver;DataSnapIndy10ServerTransport;JclDeveloperTools;DataSnapConnectors;vcldsnap;DBXInterBaseDriver;FireDACMongoDBDriver;JvWizards;OrpheusDR;FireDACTDataDriver;Skia.Package.VCL;PaintBoxWheelProj;vcldb;SynEditDR;JvCore;bindcomp;gold_parser_5;code_barre;inetstn;SynHighlighterLuaDpk;IndyCore;RESTBackendComponents;FireDACADSDriver;RaizeComponentsVclDb;RESTComponents;IndyIPServer;vcl;dsnapxml;adortl;dsnapcon;DataSnapClient;DataSnapProviderClient;JvDotNetCtrls;JvHMI;IcsVclNewRun;DBXDb2Driver;emsclientfiredac;FireDACPgDriver;FireDACDSDriver;JvPrintPreview;tethering;JvStdCtrls;bindcompvcl;EditSpellCheckProj;SMCmpntD12;CloudService;DBXSybaseASADriver;soaprtl;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
@@ -131,13 +132,21 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
+        <DCCReference Include="..\Common\AppWatcher_ioHandler.pas"/>
+        <DCCReference Include="..\Common\AppWatcher_Lang.pas"/>
+        <DCCReference Include="..\Common\AppWatcher_consts.pas"/>
         <DCCReference Include="AppWatcherMaster_main.pas">
             <Form>FormAppWatcherMaster</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="..\Common\AppWatcher_ioHandler.pas"/>
-        <DCCReference Include="..\Common\AppWatcher_Lang.pas"/>
-        <DCCReference Include="..\Common\AppWatcher_consts.pas"/>
+        <DCCReference Include="AppWatcherMaster_Deploy.pas">
+            <Form>FormDeployManager</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="AppWatcherMaster_AddFile.pas">
+            <Form>DlgAddFile</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

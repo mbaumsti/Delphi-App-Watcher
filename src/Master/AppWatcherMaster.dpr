@@ -1,17 +1,24 @@
-program AppWatcherMaster;
+Program AppWatcherMaster;
 
 uses
   Vcl.Forms,
-  AppWatcherMaster_main in 'AppWatcherMaster_main.pas' {FormAppWatcherMaster},
   AppWatcher_ioHandler in '..\Common\AppWatcher_ioHandler.pas',
   AppWatcher_Lang in '..\Common\AppWatcher_Lang.pas',
-  AppWatcher_consts in '..\Common\AppWatcher_consts.pas';
+  AppWatcher_consts in '..\Common\AppWatcher_consts.pas',
+  AppWatcherMaster_main in 'AppWatcherMaster_main.pas' {FormAppWatcherMaster},
+  AppWatcherMaster_Deploy in 'AppWatcherMaster_Deploy.pas' {FormDeployManager},
+  Vcl.Themes,
+  Vcl.Styles,
+  AppWatcherMaster_AddFile in 'AppWatcherMaster_AddFile.pas' {DlgAddFile};
 
 {$R *.res}
 
-begin
-  Application.Initialize;
-  Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TFormAppWatcherMaster, FormAppWatcherMaster);
+Begin
+    Application.Initialize;
+    Application.MainFormOnTaskbar := true;
+    Application.ModalPopupMode :=  pmExplicit ;
+    TStyleManager.TrySetStyle('Wedgewood Light');
+    Application.CreateForm(TFormAppWatcherMaster, FormAppWatcherMaster);
   Application.Run;
-end.
+End.
+

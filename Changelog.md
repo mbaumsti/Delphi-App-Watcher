@@ -1,5 +1,53 @@
 # Changelog  
 
+## 🚀 v2.0.0 - 09/03/2025  
+
+### ⚠️ Breaking Changes  
+- **`TAppWatcherMessage` structure updated**:  
+  - `Handle` is now a `UInt64` instead of `HWnd` for **better compatibility across 32/64-bit systems**.  
+  - **Record become Packed record**, modifying the message memory layout.  
+  - ⚠ **Older versions will not be able to communicate with v2.0.0**.  
+- **Protocol version update required**: Ensure **all components (Master, Agent, Client)** use the **same version**.  
+
+### ✨ Added  
+- **🚀 Application Deployment Management (`AppWatcherMaster_Deploy.pas`)**  
+  - New feature to **deploy applications**.  
+  - Allows **selecting applications to copy** from a source directory to destination paths.  
+  - Fully integrated with the Master UI.  
+
+- **📂 Application list sorting & filtering**  
+  - Click on column headers to **sort** application lists.  
+  - Toggle filtering to display **only applications marked for deployment**.  
+
+- **🖥️ Auto-selection of added applications**  
+  - When adding an application to the deployment list, it is **automatically selected** in the UI.  
+
+
+### 🛠 Fixed & Improved  
+- **Master now verify its role regularly** `Check if the MASTER is still the MASTER`.  
+- **Agent Fixes:**  
+  - `HandleCLIENTAckReply` now correctly **transmits parameters** (`StopDialog.Params := Msg.Params`).  
+  - **INI file is now only reloaded if modified** to prevent unnecessary reads.  
+- **Component Improvements:**  
+  - `FindParentForm` logic refined for better UI hierarchy detection.  
+  - `FLastCommand` is now properly set when commands are executed.  
+- **Client Example Enhancements:**  
+  - Uses `getCmdName` for better command interpretation.  
+  - Added **radio buttons** to simulate acceptance/refusal of application shutdown.  
+  - Displays transmitted parameters to demonstrate **start/stop messaging**.  
+
+
+### 🔄 Upgrade Notes  
+1. **Ensure all instances (Master, Agent, Client) are updated** to **v2.0.0**.  
+2. **Update integrations** that rely on `TAppWatcherMessage` due to **structure changes**.  
+3. **Reconfigure deployment settings** via the new `Deploy Manager` UI.  
+
+🚀 **With v2.0.0, AppWatcher is now a full-fledged **deployment tool** in addition to monitoring!** 🎉  
+
+
+
+
+
 ## v1.3.4 - 28/02/2025  
 ### ✨ Added  
 - Added a **filtering system** in `TStringGrid`, allowing users to filter applications dynamically.  

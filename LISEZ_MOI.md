@@ -6,7 +6,7 @@
 **AppWatcher** est un **composant Delphi** permettant à une application d’être **contrôlée à distance** par une application **superviseur** dédiée, incluse dans la solution.  
 
 Il est conçu pour les **développeurs et administrateurs IT** qui doivent **arrêter proprement**,  
-**remplacer** et **redémarrer des applications** sur plusieurs machines, sans utiliser **RDP** ni accéder physiquement à chaque ordinateur.  
+**remplacer**, **redémarrer des applications** et désormais **déployer** des applications, sans utiliser **RDP** ni accéder physiquement à chaque ordinateur.  
 
 **✅ Développé en Delphi 12.2**  
 
@@ -19,6 +19,7 @@ Il est conçu pour les **développeurs et administrateurs IT** qui doivent **arr
 ✔️ **Arrêtez facilement des applications en cours d'exécution sur des machines distantes**  
 ✔️ **Déployez des mises à jour d'application avec un minimum de perturbations pour les utilisateurs**  
 ✔️ **Prévenez les utilisateurs avant l'arrêt d'une application**  
+✔️ **Copiez automatiquement des applications depuis une source vers des destinations spécifiques**  
 ✔️ **Redémarrez automatiquement les applications après une mise à jour**  
 ✔️ **Évitez d'utiliser RDP (Remote Desktop) ou de vous déplacer physiquement entre les machines**  
 ✔️ **Minimisez les temps d'arrêt et optimisez le processus de déploiement**  
@@ -27,6 +28,7 @@ Il est conçu pour les **développeurs et administrateurs IT** qui doivent **arr
 
 ## 🚀 Fonctionnalités  
 
+✅ **Nouveau (v2.0) : Déploiement d'applications** : Copie automatique et intelligente des fichiers exécutables.  
 ✅ **Arrêt des applications à distance** avec une simple commande.  
 ✅ **Définition d’un compte à rebours avant l'arrêt** pour notifier les utilisateurs.  
 ✅ **Redémarrage automatique des applications** après une mise à jour.  
@@ -48,7 +50,9 @@ AppWatcher est composé de **trois éléments principaux** :
 - Permet aux administrateurs **d'arrêter à distance des applications**, tout en affichant un compte à rebours aux utilisateurs avant l'arrêt.  
 - Permet **d'annuler une demande d'arrêt** avant la fin du compte à rebours.  
 - Peut demander **le redémarrage de toutes les applications gérées** après une mise à jour.  
-- Peut demander **l’arrêt de tous les Agents**.  
+- Peut demander **l’arrêt de tous les Agents**.
+- **Nouveau (v2.0) : Gère la liste des applications à déployer** via une interface dédiée.   
+- **Nouveau (v2.0) : Tri et filtrage** pour afficher uniquement les applications à déployer. 
 
 2. **🖥️ AppWatcher Agent** – Un **service léger** exécuté sur les machines distantes qui :  
 
@@ -66,13 +70,13 @@ AppWatcher est composé de **trois éléments principaux** :
 - Assure un **arrêt propre et un redémarrage possible après mise à jour**.  
 - Facilite l’intégration d’AppWatcher dans des applications Delphi avec **un minimum de code**.  
 
+ 
 ---
 
 ## 📦 Installation  
 
-👉 **Des binaires précompilés sont disponibles dans la version v1.3.4 pour un test rapide sans compilation.**  
-📌 [Télécharger ici](https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v1.3.4)  
-
+👉 **Des binaires précompilés sont disponibles dans la version v2.0.0 pour un test rapide sans compilation.**  
+📌 [Télécharger ici](https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v2.0.0)  
 
 ### 🔹 **1. Configuration du serveur Master**  
 
@@ -131,11 +135,11 @@ Pour rendre une **application Delphi contrôlable** par AppWatcher, suivez ces �
 
 ---
 
-### 🔹 **4. Gestion des fichiers de configuration (`.ini`)**  
+### 🔹 **4. Gestion des fichiers de configuration (`.ini et .json`)**  
 
-AppWatcher **utilise des fichiers INI** pour sa configuration. Ces fichiers doivent être **accessibles par l'application** afin d'assurer un fonctionnement correct.  
+AppWatcher **utilise des fichiers INI** pour sa configuration et un fichier **AppWatcher.json** (pour stocker la liste des applications a déployer). Ces fichiers doivent être **accessibles par l'application** afin d'assurer un fonctionnement correct.  
 
-📌 Où AppWatcher cherche-t-il les fichiers INI ?  
+📌 Où AppWatcher cherche-t-il les fichiers ?  
 ✔ **Dans le répertoire d'exécution de l'application** (ex: `C:\Program Files\AppWatcher\`).  
 ✔ **Dans un sous-répertoire `Config\` du répertoire d'exécution** (ex: `C:\Program Files\AppWatcher\Config\`).  
 ✔ **En suivant les raccourcis Windows (`.lnk`)** : Si un fichier `.ini` n'est pas trouvé directement, AppWatcher vérifie si un raccourci `.lnk` portant le même nom existe et suit sa cible.  
