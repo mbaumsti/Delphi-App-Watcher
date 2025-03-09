@@ -18,7 +18,7 @@ It is designed for **developers and IT administrators** who need to **cleanly sh
 ✔️ **Easily stop running applications on remote machines**  
 ✔️ **Deploy application updates with minimal disruption to users**  
 ✔️ **Notify users before stopping an application**  
-✔️ **Automatically copy apps from one source to specific destinations**
+✔️ **Automatically copy apps from one source to specific destinations**  
 ✔️ **Restart applications automatically after an update**  
 ✔️ **Avoid using RDP (Remote Desktop) or physically moving between machines**  
 ✔️ **Minimize downtime and streamline the deployment process**  
