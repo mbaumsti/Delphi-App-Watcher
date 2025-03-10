@@ -4,7 +4,7 @@
   Author  : mbaumsti
   GitHub  : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date    : 07/03/2025
-  Version : 2.0.0
+  Version : 2.0.1
   License : MIT
 
   Description :
@@ -23,6 +23,8 @@
   Change Log :
   ------------
   - [07/03/2025] : Initial creation
+  - [10/03/2025] : v2.0.1 Bug in item deletion and selection after sorting (DeleteCopyItem and AppListDblClick )
+                          adding `GetRealIndexFromSelected` who retrieves the correct index
 
   Note :
   -------
@@ -75,6 +77,7 @@ Type
         Procedure DeleteCopyItem(Index: integer);
         Procedure RefreshListView(ListView: TListView);
         Procedure LoadFromJSON(ListView: TListView);
+        Function GetRealIndexFromSelected: Integer;
     public
         { Déclarations publiques }
         Procedure GetAppCheckedList(Var ChkLst: TList<String>);
@@ -100,6 +103,7 @@ Const
     cColSourceDate: String = 'SourceDate';
     cColDestDir: String = 'DestDir';
     cColDestDate: String = 'DestDate';
+    cColIdx: String = 'idx';
 
 Function CompareAppItems(Item1, Item2: TListItem; ParamSort: Integer): Integer; stdcall;
 Var
@@ -119,11 +123,26 @@ Begin
     Text1 := Item1.SubItems[SortColumn - 1]; // -1 car la première colonne est `Caption`
     Text2 := Item2.SubItems[SortColumn - 1];
 
+    If (StrToIntDef(Text1, -1) <> -1) And (StrToIntDef(Text2, -1) <> -1) Then Begin
+        // Ce sont des colonnes numériques
+        Text1 := Text1.PadLeft(10, '0');
+        Text2 := Text2.PadLeft(10, '0');
+    End;
+
     // Appliquer le tri
     If SortAscending Then
         Result := CompareText(Text1, Text2) // Tri croissant
     Else
         Result := CompareText(Text2, Text1); // Tri décroissant
+End;
+
+Function TFormDeployManager.GetRealIndexFromSelected: Integer;
+Begin
+    Result := -1;
+    If (AppList.Selected = Nil) Or (AppList.Selected.Index < 0) Then Exit;
+
+    // 🔹 Lire l'index réel depuis la colonne cachée
+    Result := StrToIntDef(AppList.Selected.SubItems[FColumns[cColIdx].Index - 1], -1);
 End;
 
 Procedure TFormDeployManager.GetAppCheckedList(Var ChkLst: TList<String>);
@@ -186,6 +205,8 @@ Begin
 End;
 
 Procedure TFormDeployManager.CreateListColumns;
+Var
+    Col: TListColumn;
 
     Procedure AddColumn(Const AColumnName, Acaption: String; AWidth: Integer);
     Begin
@@ -203,7 +224,12 @@ Begin
     AddColumn(cColSourceDate, 'Date source', 150);
     AddColumn(cColDestDir, 'Destination', 250);
     AddColumn(cColDestDate, 'Date Destination', 150);
-
+    // 🔹 Ajout d'une colonne INVISIBLE pour stocker l'index réel
+    Col := AppList.Columns.Add;
+    Col.Caption := 'Index';
+    Col.Width := 0; // Rend la colonne totalement invisible
+    Col.AutoSize := False;
+    FColumns.Add(cColIdx, Col);
 End;
 
 Procedure TFormDeployManager.SaveToJSON;
@@ -234,7 +260,7 @@ End;
 
 Procedure TFormDeployManager.AddCopyItem(Const Filename, AName, ASourceDir, ADestDir: String);
 Var
-    i: Integer;
+    i, idx: Integer;
 Begin
     For i := 0 To High(FCopyList) Do
         If SameText(FCopyList[i].Name, AName) And
@@ -245,18 +271,17 @@ Begin
         End;
 
     SetLength(FCopyList, Length(FCopyList) + 1);
-    FCopyList[High(FCopyList)].Name := AName;
-    FCopyList[High(FCopyList)].SourceDir := ASourceDir;
-    FCopyList[High(FCopyList)].DestDir := ADestDir;
+    idx := High(FCopyList);
+    FCopyList[idx].Name := AName;
+    FCopyList[idx].SourceDir := ASourceDir;
+    FCopyList[idx].DestDir := ADestDir;
 
     SaveToJSON;
     RefreshListView(AppList);
 
     // 🔹 Sélectionner automatiquement la nouvelle ligne après ajout
     For i := 0 To AppList.Items.Count - 1 Do Begin
-        If SameText(AppList.Items[i].SubItems[FColumns[cColFileName].Index - 1], AName) And
-        SameText(AppList.Items[i].SubItems[FColumns[cColSourceDir].Index - 1], ASourceDir) And
-        SameText(AppList.Items[i].SubItems[FColumns[cColDestDir].Index - 1], ADestDir) Then Begin
+        If SameText(AppList.Items[i].SubItems[FColumns[cColidx].Index - 1], idx.ToString) Then Begin
             AppList.Selected := AppList.Items[i];
             AppList.ItemFocused := AppList.Items[i];
             AppList.Items[i].MakeVisible(False); // 🔹 Fait défiler si besoin
@@ -372,13 +397,11 @@ End;
 
 Procedure TFormDeployManager.BtnDelClick(Sender: TObject);
 Var
-    ItemIndex: Integer;
+    RealIndex: Integer;
 Begin
-    If AppList.Selected = Nil Then Exit;
-
-    ItemIndex := AppList.Selected.Index;
-    DeleteCopyItem(ItemIndex);
-
+    RealIndex := GetRealIndexFromSelected;
+    If RealIndex <> -1 Then
+        DeleteCopyItem(RealIndex);
 End;
 
 Procedure TFormDeployManager.AppListColumnClick(Sender: TObject; Column: TListColumn);
@@ -403,17 +426,13 @@ End;
 Procedure TFormDeployManager.AppListDblClick(Sender: TObject);
 Var
     Source, Dest: String;
-    ItemIndex: Integer;
+    RealIndex, i: Integer;
 Begin
-    If AppList.Selected = Nil Then Exit;
+    RealIndex := GetRealIndexFromSelected;
+    If RealIndex = -1 Then Exit;
 
-    ItemIndex := AppList.Selected.Index;
-
-    Source := TPath.Combine(
-        AppList.Selected.SubItems[FColumns[cColSourceDir].Index - 1],
-        AppList.Selected.SubItems[FColumns[cColFileName].Index - 1]
-        );
-    Dest := AppList.Selected.SubItems[FColumns[cColDestDir].Index - 1];
+    Source := TPath.Combine(FCopyList[RealIndex].SourceDir, FCopyList[RealIndex].Name);
+    Dest := FCopyList[RealIndex].DestDir;
 
     If Not Assigned(DlgAddFile) Then
         DlgAddFile := TDlgAddFile.Create(Application);
@@ -423,12 +442,21 @@ Begin
         DlgAddFile.PopupParent := Self;
 
         If DlgAddFile.Execute(Source, Dest, FLanguageManager) Then Begin
-            FCopyList[ItemIndex].SourceDir := ExtractFilePath(Source);
-            FCopyList[ItemIndex].Name := ExtractFileName(Source);
-            FCopyList[ItemIndex].DestDir := Dest;
+            FCopyList[RealIndex].SourceDir := ExtractFilePath(Source);
+            FCopyList[RealIndex].Name := ExtractFileName(Source);
+            FCopyList[RealIndex].DestDir := Dest;
 
             SaveToJSON;
             RefreshListView(AppList);
+
+            For i := 0 To AppList.Items.Count - 1 Do Begin
+                If SameText(AppList.Items[i].SubItems[FColumns[cColidx].Index - 1], RealIndex.ToString) Then Begin
+                    AppList.Selected := AppList.Items[i];
+                    AppList.ItemFocused := AppList.Items[i];
+                    AppList.Items[i].MakeVisible(False); // 🔹 Fait défiler si besoin
+                    Break;
+                End;
+            End;
         End;
     Finally
         FreeAndNil(DlgAddFile);
@@ -499,6 +527,7 @@ Begin
         ListItem.SubItems[FColumns[cColDestDir].Index - 1] := Item.DestDir;
 
         ListItem.SubItems[FColumns[cColDestDate].Index - 1] := DateTimeToStr(DestDate);
+        ListItem.SubItems[FColumns[cColidx].Index - 1] := IntToStr(i);
     End;
 
     // Appliquer le tri après mise à jour

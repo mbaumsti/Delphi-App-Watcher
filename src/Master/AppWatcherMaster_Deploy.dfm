@@ -12,6 +12,9 @@ object FormDeployManager: TFormDeployManager
   Font.Style = []
   OnClose = FormClose
   OnCreate = FormCreate
+  DesignSize = (
+    1282
+    704)
   TextHeight = 17
   object AppList: TListView
     AlignWithMargins = True
@@ -42,6 +45,7 @@ object FormDeployManager: TFormDeployManager
     Top = 662
     Width = 210
     Height = 30
+    Anchors = [akLeft, akBottom]
     Caption = 'Rafraichir liste'
     TabOrder = 1
     OnClick = BtnRefreshClick
@@ -51,6 +55,7 @@ object FormDeployManager: TFormDeployManager
     Top = 662
     Width = 210
     Height = 30
+    Anchors = [akLeft, akBottom]
     Caption = 'Ajouter fichier '#224' d'#233'ployer'
     TabOrder = 3
     OnClick = BtnAddFileClick
@@ -60,6 +65,7 @@ object FormDeployManager: TFormDeployManager
     Top = 662
     Width = 210
     Height = 30
+    Anchors = [akLeft, akBottom]
     Caption = 'Enlever fichier du d'#233'ploiement'
     TabOrder = 4
     OnClick = BtnDelClick
@@ -69,6 +75,7 @@ object FormDeployManager: TFormDeployManager
     Top = 662
     Width = 210
     Height = 30
+    Anchors = [akLeft, akBottom]
     Caption = 'Lancer d'#233'ploiement'
     TabOrder = 5
     OnClick = BtnDeployExecuteClick
@@ -78,6 +85,7 @@ object FormDeployManager: TFormDeployManager
     Top = 662
     Width = 210
     Height = 30
+    Anchors = [akLeft, akBottom]
     Caption = 'Modifier'
     TabOrder = 2
     OnClick = BtnModifClick

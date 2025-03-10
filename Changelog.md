@@ -1,5 +1,23 @@
 # Changelog  
 
+## 🔄 v2.0.1 - 10/03/2025  
+
+### 🛠 Fixed  
+- **Bug in item deletion after sorting (`DeleteCopyItem`)**  
+  - When sorting the list, the deletion was incorrect because the displayed index didn't match the actual index in `FCopyList`.  
+  - A new function `GetRealIndexFromSelected` now retrieves the correct index before deleting or modifying items.  
+
+### 🚀 Improved  
+- **Code refactoring: Centralized real index lookup**  
+  - The `GetRealIndexFromSelected` function is now used in multiple places (`DeleteCopyItem`, `AppListDblClick`, `BtnDelClick`), avoiding duplicate code.  
+  - This ensures correct behavior even after sorting.  
+
+
+### 🔄 Upgrade Notes  
+- This update **does not break compatibility** with `2.0.0`.  
+- If you were affected by **deletion issues after sorting**, upgrading is highly recommended.  
+
+
 ## 🚀 v2.0.0 - 09/03/2025  
 
 ### ⚠️ Breaking Changes  

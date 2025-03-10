@@ -76,7 +76,7 @@ AppWatcher est composé de **trois éléments principaux** :
 ## 📦 Installation  
 
 👉 **Des binaires précompilés sont disponibles dans la version v2.0.0 pour un test rapide sans compilation.**  
-📌 [Télécharger ici](https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v2.0.0)  
+📌 [Télécharger ici](https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v2.0.1)  
 
 ### 🔹 **1. Configuration du serveur Master**  
 
