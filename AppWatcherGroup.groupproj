@@ -3,10 +3,13 @@
         <ProjectGuid>{2BE482E3-5AE0-4D4E-A787-B1ECD3DD7896}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="src\Client_Component\AppWatcherClientPackage.dproj">
+        <Projects Include="src\Stub\AppWatcherStub.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="src\Agent\AppWatcherAgent.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="src\Client_Component\AppWatcherClientPackage.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="src\Client_Test\AppWatcherClient.dproj">
@@ -23,14 +26,14 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="AppWatcherClientPackage">
-        <MSBuild Projects="src\Client_Component\AppWatcherClientPackage.dproj"/>
+    <Target Name="AppWatcherStub">
+        <MSBuild Projects="src\Stub\AppWatcherStub.dproj"/>
     </Target>
-    <Target Name="AppWatcherClientPackage:Clean">
-        <MSBuild Projects="src\Client_Component\AppWatcherClientPackage.dproj" Targets="Clean"/>
+    <Target Name="AppWatcherStub:Clean">
+        <MSBuild Projects="src\Stub\AppWatcherStub.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="AppWatcherClientPackage:Make">
-        <MSBuild Projects="src\Client_Component\AppWatcherClientPackage.dproj" Targets="Make"/>
+    <Target Name="AppWatcherStub:Make">
+        <MSBuild Projects="src\Stub\AppWatcherStub.dproj" Targets="Make"/>
     </Target>
     <Target Name="AppWatcherAgent">
         <MSBuild Projects="src\Agent\AppWatcherAgent.dproj"/>
@@ -40,6 +43,15 @@
     </Target>
     <Target Name="AppWatcherAgent:Make">
         <MSBuild Projects="src\Agent\AppWatcherAgent.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="AppWatcherClientPackage">
+        <MSBuild Projects="src\Client_Component\AppWatcherClientPackage.dproj"/>
+    </Target>
+    <Target Name="AppWatcherClientPackage:Clean">
+        <MSBuild Projects="src\Client_Component\AppWatcherClientPackage.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AppWatcherClientPackage:Make">
+        <MSBuild Projects="src\Client_Component\AppWatcherClientPackage.dproj" Targets="Make"/>
     </Target>
     <Target Name="AppWatcherClient">
         <MSBuild Projects="src\Client_Test\AppWatcherClient.dproj"/>
@@ -60,13 +72,13 @@
         <MSBuild Projects="src\Master\AppWatcherMaster.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="AppWatcherClientPackage;AppWatcherAgent;AppWatcherClient;AppWatcherMaster"/>
+        <CallTarget Targets="AppWatcherStub;AppWatcherAgent;AppWatcherClientPackage;AppWatcherClient;AppWatcherMaster"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="AppWatcherClientPackage:Clean;AppWatcherAgent:Clean;AppWatcherClient:Clean;AppWatcherMaster:Clean"/>
+        <CallTarget Targets="AppWatcherStub:Clean;AppWatcherAgent:Clean;AppWatcherClientPackage:Clean;AppWatcherClient:Clean;AppWatcherMaster:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="AppWatcherClientPackage:Make;AppWatcherAgent:Make;AppWatcherClient:Make;AppWatcherMaster:Make"/>
+        <CallTarget Targets="AppWatcherStub:Make;AppWatcherAgent:Make;AppWatcherClientPackage:Make;AppWatcherClient:Make;AppWatcherMaster:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -1042,14 +1042,6 @@ object FormAppWatcher: TFormAppWatcher
       OnClick = Quitter1Click
     end
   end
-  object IdTCPServerCLIENT: TIdTCPServer
-    Active = True
-    Bindings = <>
-    DefaultPort = 2520
-    OnExecute = IdTCPServerCLIENTExecute
-    Left = 419
-    Top = 125
-  end
   object IdTCPClientMASTER: TIdTCPClient
     ConnectTimeout = 0
     Host = '127.0.0.1'

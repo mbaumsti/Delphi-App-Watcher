@@ -14,6 +14,7 @@ object FormStopNotification: TFormStopNotification
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  FormStyle = fsStayOnTop
   StyleElements = [seFont, seClient]
   OnCreate = FormCreate
   TextHeight = 15

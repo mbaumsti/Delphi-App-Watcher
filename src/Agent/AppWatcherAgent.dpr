@@ -1,12 +1,15 @@
 program AppWatcherAgent;
 
+
 uses
   Vcl.Forms,
   AppWatcherAgent_main in 'AppWatcherAgent_main.pas' {FormAppWatcher},
   AppWatcherAgent_Stop in 'AppWatcherAgent_Stop.pas' {FormStopNotification},
   AppWatcher_ioHandler in '..\Common\AppWatcher_ioHandler.pas',
   AppWatcher_Lang in '..\Common\AppWatcher_Lang.pas',
-  AppWatcher_consts in '..\Common\AppWatcher_consts.pas';
+  AppWatcher_consts in '..\Common\AppWatcher_consts.pas',
+  PipesCommon in '..\Common\PipesCommon.pas',
+  PipeServer in '..\Common\PipeServer.pas';
 
 {$R *.res}
 

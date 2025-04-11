@@ -3,8 +3,8 @@
   Unit     : AppWatcherAgent_main.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 09/04/2025
-  Version  : 3.0.0
+  Date     : 24/02/2025
+  Version  : 2.0.0
   License  : MIT
 
   Description :
@@ -37,11 +37,6 @@
                          !!! This change makes the version incompatible with v1 !!!
                         - Fixed HandleCLIENTAckReply which did  forget to transmit the Parameters : StopDialog.Params:=Msg.Params;
                         - Load the .ini file only if it has been modified.
-  - [09/04/2025] : v3.0 - Adapted to use Named Pipes instead of TCPIP for communication with local clients.
-                        - Added an agent restart function via the AppWatcherStub program.
-                          Allows network agents to be stopped to replace the executable.
-                          This operation is entirely controlled by the Master.
-                        - Silent mode to stop and restart the application without notifying the user
 
   Notes :
   -------
@@ -57,8 +52,8 @@ Uses
     Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Menus, Tlhelp32, System.Generics.Collections,
     Vcl.ExtCtrls, IdContext, IdBaseComponent, IdComponent, IdCustomTCPServer,
     IdTCPServer, System.IniFiles, IdTCPConnection, IdTCPClient, IdException, AppWatcherAgent_Stop,
-    AppWatcher_ioHandler, AppWatcher_Lang, System.SyncObjs, System.IOUtils,
-    AppWatcher_consts, PipesCommon, PipeServer;
+    AppWatcher_ioHandler, AppWatcher_Lang, System.SyncObjs,System.IOUtils,
+    AppWatcher_consts;
 
 Type
 
@@ -97,18 +92,18 @@ Type
         TrayIcon1: TTrayIcon;
         PopupMenu1: TPopupMenu;
         Voir1: TMenuItem;
+        IdTCPServerCLIENT: TIdTCPServer;
         IdTCPClientMASTER: TIdTCPClient;
         Timer1: TTimer;
         Quitter1: TMenuItem;
         Procedure FormClose(Sender: TObject; Var Action: TCloseAction);
         Procedure FormCreate(Sender: TObject);
-        Procedure NamedPipeServerPipeMessage(Sender: TObject; Pipe: HPIPE; Stream: TStream);
+        Procedure IdTCPServerCLIENTExecute(AContext: TIdContext);
         Procedure Quitter1Click(Sender: TObject);
         Procedure Timer1Timer(Sender: TObject);
         Procedure Voir1Click(Sender: TObject);
     private
         {Déclarations privées}
-        FNamedPipeServer: TPipeServer;
         FServerIP: String;
         FServerPort: Integer;
         FStopTimeOut: Integer;
@@ -117,11 +112,10 @@ Type
         FStopDialogs: TStoppedDialogs;
         FLastReconnectAttempt: TDateTime;
         FLastConfigLoad: TDateTime;
-        FMessageQueue: TAppWatcherMessageQueue; //File d’attente des messages
-
+        FMessageQueue: TQueue<TAppWatcherMessage>; //File d’attente des messages
+        FQueueLock: TCriticalSection; //🔒 Protection d'accès à la file
         FSignalErrorConnect: Boolean;
         FRequestingClose: Boolean;
-        FProcessingScheduled: Boolean;
         FLang: TAppWatcherLang;
         FLanguageManager: TAppLangManager;
         FLastIniModified: TDateTime;
@@ -133,10 +127,9 @@ Type
         Procedure HandleMasterMessage(Var Msg: TAppWatcherMessage);
         Procedure HandleMASTERWhoRequest;
         Procedure HandleMASTERStopRequest(Var Msg: TAppWatcherMessage);
-        Procedure HandleMASTERStartRequest(Silent: boolean);
+        Procedure HandleMASTERStartRequest;
         Procedure HandleMASTERCancelRequest;
         Procedure HandleMASTERStopAgent;
-        Procedure HandleMASTERRestartAgent;
 
         Procedure HandleCLIENTWhoReply(Msg: TAppWatcherMessage);
         Procedure HandleCLIENTStopRequestReply(Msg: TAppWatcherMessage);
@@ -323,9 +316,9 @@ Begin
             IdTCPClientMASTER.Host := FServerIP;
             IdTCPClientMASTER.ReadTimeout := 10000; //Timeout de lecture pour éviter blocage
 
-            //            FCLientPort := Ini.ReadInteger('ClientConfig', 'Port', 2520);
-            //            FClientInterval := Ini.ReadInteger('ClientConfig', 'Interval', 3000);
-            //            IdTCPServerCLIENT.DefaultPort := FCLientPort;
+            FCLientPort := Ini.ReadInteger('ClientConfig', 'Port', 2520);
+            FClientInterval := Ini.ReadInteger('ClientConfig', 'Interval', 3000);
+            IdTCPServerCLIENT.DefaultPort := FCLientPort;
 
         Finally
             Ini.Free;
@@ -352,7 +345,6 @@ Begin
     //🔹 Trouver le fichier de configuration
     FLastConfigLoad := Now;
     FRequestingClose := False;
-    FProcessingScheduled := false;
     FLastIniModified := EncodeDate(1900, 1, 1);
 
     //🔹 Vérification des paramètres en ligne de commande (--lang fr ou --lang en)
@@ -392,18 +384,8 @@ Begin
 
     FStopDialogs := TStoppedDialogs.Create;
 
-    FMessageQueue := TAppWatcherMessageQueue.Create;
-    FNamedPipeServer := TPipeServer.Create;
-    With FNamedPipeServer Do Begin
-
-        PipeName := cPipeName;
-        MustBeFirstInstance := true;
-        //                OnPipeConnect := NamedPipeServerPipeConnect;
-        //                OnPipeDisconnect := NamedPipeServerPipeDisconnect;
-        OnPipeMessage := NamedPipeServerPipeMessage;
-        //                OnServerStopped := NamedPipeServerStopped;
-        Active := true;
-    End;
+    FMessageQueue := TQueue<TAppWatcherMessage>.Create;
+    FQueueLock := TCriticalSection.Create;
 
     Timer1.Interval := 1000; //Vérifie chaque seconde
     Timer1.enabled := True;
@@ -440,10 +422,14 @@ Begin
         TrayIcon1.Visible := False;
         FStopDialogs.Free;
         FreeAndNil(FLanguageManager);
-
-        FreeAndNil(FNamedPipeServer);
-        FreeAndNil(FMessageQueue);
-
+        FQueueLock.Enter;
+        Try
+            FMessageQueue.Clear;
+            FreeAndNil(FMessageQueue);
+        Finally
+            FQueueLock.Leave;
+            FreeAndNil(FQueueLock);
+        End;
         Action := caFree;
 
     End Else Begin
@@ -493,11 +479,9 @@ Begin
         If FRequestingClose Then
             close;
 
-        If Not FNamedPipeServer.Active Then FNamedPipeServer.active := true;
+        ProcessQueuedMessages; //🔄 Traitement des messages en attente
 
-        //        If not FNamedPipeServer.Active Then exit;
-
-                //On ne charge pas le fichier config périodiquement
+        //On ne charge pas le fichier config périodiquement
         If (Now - FLastConfigLoad) * 86400000 >= LOADCONFIG_INTERVAL Then Begin
             LoadConfig;
             FLastConfigLoad := Now;
@@ -561,17 +545,24 @@ Var
     Context: TIdContext;
     ContextList: TList;
     Msg: TAppWatcherMessage;
-    i: integer;
 Begin
     //Prépare le message de stop
     Msg.Init(StopDialog.Handle, cmdSTOP, StopDialog.AppPath, StopDialog.Params, 0);
 
     //On l'envoi à tout le monde mais le client qui possède ce Handle répondra  et les autres pourront ignorer le message
-    If FNamedPipeServer.Broadcast(Msg, SizeOf(Msg)) Then
-        Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'STOP_SENT'), []))
-    Else
-        Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'STOP_SENT_ERROR'), []));
-
+    ContextList := IdTCPServerCLIENT.Contexts.LockList;
+    Try
+        For Context In ContextList Do Begin
+            Try
+                Msg.SendMessage(Context.Connection.IOHandler);
+                Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'STOP_SENT'), [Context.Binding.PeerIP]));
+            Except
+                Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'STOP_SENT_ERROR'), [Context.Binding.PeerIP]));
+            End;
+        End;
+    Finally
+        IdTCPServerCLIENT.Contexts.UnlockList;
+    End;
 End;
 
 (*=============================== TRAITEMENT DES MESSAGES DU MASTER ===================================================================*)
@@ -584,105 +575,89 @@ Begin
         cmdSTOP:
             HandleMASTERStopRequest(Msg);
         cmdSTART:
-            HandleMASTERStartRequest(Msg.Silent);
+            HandleMASTERStartRequest;
         cmdCANCEL:
             HandleMASTERCancelRequest;
         cmdSTOP_AGENT:
             HandleMASTERStopAgent;
-        cmdRESTART_AGENT:
-            HandleMASTERRestartAgent;
     End;
 End;
-
-//Procedure TFormAppWatcher.HandleMASTERStopAgent;
-//Var
-//    Msg: TAppWatcherMessage;
-//Begin
-//    Msg.Init(0, cmdACK, ParamStr(0), '', 0);
-//    If IdTCPClientMASTER.Connected Then
-//        Msg.SendMessage(IdTCPClientMASTER.IOHandler);
-//    //On empêche de refuser la fermeture
-//    FRequestingClose := True;
-//    OnCloseQuery := Nil;
-//    close;
-//End;
 
 Procedure TFormAppWatcher.HandleMASTERStopAgent;
 Var
     Msg: TAppWatcherMessage;
-    StubPath, Params, lng: String;
 Begin
     Msg.Init(0, cmdACK, ParamStr(0), '', 0);
     If IdTCPClientMASTER.Connected Then
         Msg.SendMessage(IdTCPClientMASTER.IOHandler);
-
-    If FLang = LangFr Then
-        lng := 'lang=fr'
-    Else
-        lng := 'lang=en';
-
-    // Lancer le Stub pour gérer la relance de l'agent
-    StubPath := ExtractFilePath(ParamStr(0)) + 'AppWatcherStub.exe';
-    Params := Format('%s %d "%s" "%s"', [
-            IdTCPClientMASTER.Host,
-            IdTCPClientMASTER.Port,
-            ParamStr(0),
-            lng // ici tu peux insérer les paramètres à passer à l'agent, ex: '--silent'
-            ]);
-    ShellExecute(0, 'open', PChar(StubPath), PChar(Params), Nil, SW_SHOWNORMAL);
-
-    // On empêche de refuser la fermeture
+    //On empêche de refuser la fermeture
     FRequestingClose := True;
     OnCloseQuery := Nil;
-    Close;
-End;
-
-Procedure TFormAppWatcher.HandleMASTERRestartAgent;
-//Demande de WHO du MASTER
-Var
-    AnswerMsg: TAppWatcherMessage;
-Begin
-    AnswerMsg.Init(0, cmdRESTART_AGENT, '', '', 0);
-    //On l'envoi à tout le monde
-    If FNamedPipeServer.Broadcast(AnswerMsg, SizeOf(AnswerMsg)) Then
-        Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'RESTART_AGENT_SEND'), []))
-    Else
-        Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'RESTART_AGENT_SEND_ERROR'), []));
-
+    close;
 End;
 
 Procedure TFormAppWatcher.HandleMASTERWhoRequest;
 //Demande de WHO du MASTER
 Var
+    Context: TIdContext;
+    ContextList: TList;
+    ConnectedApps: TStringList;
     AnswerMsg: TAppWatcherMessage;
 Begin
-    AnswerMsg.Init(0, cmdWHO, '', '', 0);
-    //On l'envoi à tout le monde
-    If FNamedPipeServer.Broadcast(AnswerMsg, SizeOf(AnswerMsg)) Then
-        Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'WHO_SEND'), []))
-    Else
-        Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'WHO_SENT_ERROR'), []));
+    ConnectedApps := TStringList.Create;
+    Try
+        ContextList := IdTCPServerCLIENT.Contexts.LockList;
+        Try
+            Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'CLIENT_COUNT'), [IntToStr(ContextList.Count)]));
+            For Context In ContextList Do Begin
+                Try
+                    //Demander le nom de l'application connectée
+                    AnswerMsg.Init(0, cmdWHO, '', '', 0);
+                    AnswerMsg.SendMessage(Context.Connection.IOHandler);
+                    ConnectedApps.Add(Context.Binding.PeerIP);
+                    Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'WHO_SEND'), [Context.Binding.PeerIP]));
 
+                Except
+                    //Ignorer les erreurs de lecture (client déconnecté)
+                End;
+            End;
+        Finally
+            IdTCPServerCLIENT.Contexts.UnlockList;
+        End;
+
+        Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'CLIENT_LIST_SENT'), [ConnectedApps.CommaText]));
+    Finally
+        ConnectedApps.Free;
+    End;
 End;
 
 Procedure TFormAppWatcher.HandleMASTERStopRequest(Var Msg: TAppWatcherMessage);
 //Demande de STOP
 Var
+    Context: TIdContext;
+    ContextList: TList;
     StopRequestMsg: TAppWatcherMessage;
 Begin
     Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'STOP_REQUEST_RECEIVED'), [Msg.AppName]));
 
-    StopRequestMsg.Init(0, cmdSTOP_REQUEST, Msg.AppPath, Msg.Params, Msg.Duration,Msg.Silent);
+    StopRequestMsg.Init(0, cmdSTOP_REQUEST, Msg.AppPath, Msg.Params, Msg.Duration);
 
-    //On l'envoi à tout le monde
-    If FNamedPipeServer.Broadcast(StopRequestMsg, SizeOf(StopRequestMsg)) Then
-        Memo1.Lines.Add(FLanguageManager.GetMessage('AGENT', 'STOP_REQUEST_SEND'))
-    Else
-        Memo1.Lines.Add(FLanguageManager.GetMessage('AGENT', 'STOP_REQUEST_FAILED'));
-
+    ContextList := IdTCPServerCLIENT.Contexts.LockList;
+    Try
+        For Context In ContextList Do Begin
+            Try
+                StopRequestMsg.SendMessage(Context.Connection.IOHandler);
+                Memo1.Lines.Add(FLanguageManager.GetMessage('AGENT', 'STOP_REQUEST_SEND'));
+            Except
+                Memo1.Lines.Add(FLanguageManager.GetMessage('AGENT', 'STOP_REQUEST_FAILED'));
+            End;
+        End;
+    Finally
+        IdTCPServerCLIENT.Contexts.UnlockList;
+    End;
 End;
 
-Procedure TFormAppWatcher.HandleMASTERStartRequest(Silent: boolean);
+Procedure TFormAppWatcher.HandleMASTERStartRequest;
 //Demande de START
 Var
     StopForm: TFormStopNotification;
@@ -712,9 +687,8 @@ Begin
                     Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'APP_RESTARTED'), [AppPath]));
                     StopForm := FormAppWatcher.FStopDialogs.FList[i].FormStop;
 
-                    If Assigned(StopForm) And Not Silent Then Begin
+                    If Assigned(StopForm) Then Begin
                         StopForm.Show;
-                        StopForm.BringToFront;
                         StopForm.NotifyRestart;
                     End;
 
@@ -766,27 +740,21 @@ End;
 
 (*===================== TRAITEMENT DES MESSAGES EN PROVENANCE DES CLIENTS =============================================================================*)
 
-Procedure TFormAppWatcher.NamedPipeServerPipeMessage(Sender: TObject; Pipe: HPIPE; Stream: TStream);
+Procedure TFormAppWatcher.IdTCPServerCLIENTExecute(AContext: TIdContext);
 //Traitement des messages clients - Ajout à la file d'attente pour traitement ultérieur par le timer
 Var
-    ReceivedMsg: TAppWatcherMessage;
+    MsgReceived: TAppWatcherMessage;
 Begin
-    If Stream.Size <> SizeOf(TAppWatcherMessage) Then
-        Memo1.Lines.Add(FLanguageManager.GetMessage('AGENT', 'ERROR_RECEIVING'))
-    Else Begin
-        Stream.Position := 0;
-        Stream.ReadBuffer(ReceivedMsg, SizeOf(TAppWatcherMessage));
-        FMessageQueue.Enqueue(ReceivedMsg);
+    If Not ReadMessage(AContext.Connection.IOHandler, MsgReceived) Then Begin
+        sleep(300);
+        Exit;
     End;
 
-    // Planifier le traitement si ce n'est déjà fait
-    If Not FProcessingScheduled Then Begin
-        FProcessingScheduled := True;
-        TThread.Queue(Nil,
-            Procedure
-            Begin
-                ProcessQueuedMessages;
-            End);
+    FQueueLock.Enter; //🔒 Verrouillage de la file
+    Try
+        FMessageQueue.Enqueue(MsgReceived); //📩 Ajout en file d’attente
+    Finally
+        FQueueLock.Leave; //🔓 Libération
     End;
 End;
 
@@ -794,11 +762,10 @@ Procedure TFormAppWatcher.ProcessQueuedMessages;
 Var
     Msg: TAppWatcherMessage;
 Begin
+    FQueueLock.Enter; //🔒 Sécurisation de l’accès à la file
     Try
-        If Not FNamedPipeServer.Active Then Exit;
-
         While FMessageQueue.Count > 0 Do Begin
-            FMessageQueue.Dequeue(Msg); //📤 Extraire le premier message
+            Msg := FMessageQueue.Dequeue; //📤 Extraire le premier message
 
             Case Msg.Command Of
                 cmdWHO_REPLY:
@@ -812,19 +779,7 @@ Begin
             End;
         End;
     Finally
-        // Le traitement est terminé, on libère le flag
-        FProcessingScheduled := False;
-
-        // Au cas où de nouveaux messages auraient été enfilés juste après,
-        // on vérifie de nouveau et on replanifie si nécessaire.
-        If FMessageQueue.Count > 0 Then Begin
-            FProcessingScheduled := True;
-            TThread.Queue(Nil,
-                Procedure
-                Begin
-                    ProcessQueuedMessages;
-                End);
-        End;
+        FQueueLock.Leave; //🔓 Libération
     End;
 End;
 
@@ -854,10 +809,7 @@ Begin
     If (StopDialog.State = dsInit) Or (StopDialog.State = dsCancel) Or (StopDialog.State = dsRestarted) Then Begin
         StopDialog.State := dsInit;
         StopDialog.CountDown := Msg.Duration; //Same as Timer1 TimerInterval = 1000 (1 sec.)
-        If Not Msg.Silent Then Begin
-            StopDialog.FormStop.Show;
-            StopDialog.FormStop.BringToFront;
-        End;
+        StopDialog.FormStop.Show;
         StopDialog.FormStop.StartCountdown(Msg.Duration, Msg.AppName);
         //🛑 Ajoute un log pour voir la valeur de Duration
         Memo1.Lines.Add(format(FLanguageManager.GetMessage('AGENT', 'STOP_COUNTDOWN'), [StopDialog.AppName, StopDialog.CountDown]));

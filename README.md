@@ -1,11 +1,18 @@
-# 🚀 AppWatcher - Remote Application Management for Developers
+# 🚀 AppWatcher – Remote Supervision & Deployment for Developers
+
+## A tool to gracefully stop and restart remote applications, in order to unlock the executable on a shared drive and allow its replacement.
 
 [Cette page en Français](https://github.com/mbaumsti/Delphi-App-Watcher/tree/main/LISEZ_MOI.md)
 
-**AppWatcher** is a **Delphi component** that allows an application to be **remotely controlled** by a dedicated **supervisor** application, included in the solution.  
+**AppWatcher** is a **Delphi component** that allows an application to be **remotely controlled** by a dedicated **supervisor application** included in the solution.
 
-It is designed for **developers and IT administrators** who need to **cleanly shut down**,
-**replace**, **restart applications** and now **deploy** applications, without using **RDP** or physically accessing each computer.
+It is designed for **developers and IT administrators** who need to:
+
+- **Gracefully stop** applications  
+- **Deploy to a shared folder**  
+- **Restart** them remotely  
+
+All of this **without using RDP** or physically accessing each machine.
 
 **✅ Developed in Delphi 12.2**  
 
@@ -27,14 +34,16 @@ It is designed for **developers and IT administrators** who need to **cleanly sh
 
 ## 🚀 Features
 
-✅ **New (v2.0): Application Deployment**: Automatic and intelligent copy of executable files.  
-✅ **Stop applications remotely** with a simple command.  
-✅ **Define a countdown before stopping an application** to notify users.  
-✅ **Restart applications automatically** after an update.  
-✅ **Multi-language support** (French & English).  
+✅ **Remote application shutdown** with a simple command.  
+✅ **Configurable countdown before shutdown** to notify users.  
+✅ **Controlled application restart** after an update.  
+✅ **Multilingual support** (French & English).  
 ✅ **Configurable settings** via INI files.  
-✅ **Indy TCP/IP communication** for secure messaging.  
-✅ **Lightweight and efficient**—does not require admin privileges. 
+✅ **Communication via Indy TCP/IP and Named Pipes** for secure messaging.  
+✅ **Lightweight and efficient** – does not require admin privileges.  
+✅ **New (v2.0): Application deployment** – automatic and optimized copying of executable files.
+✅ **New (v3.0): New architecture using Named Pipes** for local communication between Clients and the Agent.  
+✅ **New (v3.0): New `AppWatcherStub` utility** to relaunch the Agent after it has been stopped.  
 
 ---
 
@@ -49,11 +58,13 @@ AppWatcher consists of **three main components**:
    - Allows administrators to **remotely stop applications**, while giving users a countdown before shutdown.  
    - Supports **cancellation of a STOP request** before the countdown expires.  
    - Can request **all managed applications to restart** after an update.  
-   - Can request all **Agents to shut down**.  
+   - Can request all **Agents to shut down**. 
+   - **New (v3.0): AppWatcherStub utility** to allow restarting agent after stopping it.
    - **New (v2.0): Manages the list of applications to deploy** via a dedicated interface.
    - **New (v2.0): Sorting and filtering** to display only the applications to deploy.
 
-2. **🖥️ AppWatcher Agent** – A **lightweight service** running on remote machines that:  
+
+2. **🖥️ AppWatcher Agent** – A **lightweight background application** running on remote machines that:
    
    - Listens for **commands** from the Master.  
    - Communicates with **local applications** using the AppWatcher Client component.  
@@ -73,8 +84,9 @@ AppWatcher consists of **three main components**:
 
 ## 📦 Installation
 
-👉 **Precompiled binaries are available in v2.0.1 for quick testing without compilation.**
-📌 [Download here](https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v2.0.1)
+👉 **Precompiled binaries are available in v3.0.0 for quick testing without compilation.**
+📌 [Download here](https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v3.0.0)
+
 
 ### 🔹 **1. Setting Up the Master Server**
 
@@ -173,12 +185,16 @@ This tool allows you to **test AppWatcher’s functionality** before integrating
 
 ---
 
-## Assets
+## 🔧 External Resources
 
 🖼 Icons Attribution:
 
 Some icons used in this project are from [Icons8](https://icons8.com).
 As per Icons8's licensing, attribution is required unless you have a paid subscription.
+
+🔌 Named Pipes Library:
+This project integrates the excellent [NamedPipesForDelphi](https://github.com/superflexible/NamedPipesForDelphi) library, originally created by Russell and published by Tobias Giesen under *The Unlicense*.  
+The source has been modularized into three units (`PipesCommon`, `PipeClient`, `PipeServer`) for better integration into AppWatcher.
 
 ---
 

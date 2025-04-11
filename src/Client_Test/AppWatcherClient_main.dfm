@@ -22,7 +22,8 @@ object FormAppWatcherClient: TFormAppWatcherClient
     Margins.Bottom = 40
     Align = alClient
     Lines.Strings = (
-      'Configuration file "AppWatcher.ini" not found.')
+      'Fichier de configuration "AppWatcher_lang_fr.ini"  introuvable.'
+      'Fichier de configuration "AppWatcher.ini"  introuvable.')
     TabOrder = 0
   end
   object Button1: TButton
@@ -57,7 +58,6 @@ object FormAppWatcherClient: TFormAppWatcherClient
     OnCommandReceived = AppWatcherClient1CommandReceived
     OnStopRequested = AppWatcherClient1StopRequested
     OnGetAppParams = AppWatcherClient1GetAppParams
-    Lang = langEn
     Left = 381
     Top = 165
   end

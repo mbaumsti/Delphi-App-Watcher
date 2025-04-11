@@ -3,8 +3,8 @@
   Unit     : AppWatcherClient_main.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 24/02/2025
-  Version  : 2.0.0
+  Date     : 09/04/2025
+  Version  : 3.0.0
   License  : MIT
 
   Description :
@@ -34,6 +34,7 @@
                         - Improvement: Use of getCmdName
                         - Improvement: Added radio buttons to simulate accepting or refusing to close
                         - Improvement: Added parameters to show how transmission works on close/start
+  - [09/04/2025] : v3.0- Adapted to use named pipes instead of TCPIP for communication with the local agent.
 
   Notes :
   -------
@@ -116,7 +117,7 @@ End;
 
 Procedure TFormAppWatcherClient.Button1Click(Sender: TObject);
 Begin
-    FormAppWatcherClient2.showModal;
+    FormAppWatcherClientSecond.showModal;
 End;
 
 Procedure TFormAppWatcherClient.FormCloseQuery(Sender: TObject; Var CanClose:

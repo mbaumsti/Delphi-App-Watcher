@@ -2,7 +2,7 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
   Left = 0
   Top = 0
   Caption = 'App Watcher Master'
-  ClientHeight = 691
+  ClientHeight = 788
   ClientWidth = 1249
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -713,261 +713,300 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
     AC41E3E3AC41E7FFAC41FFFFAC41}
   OnClose = FormClose
   OnCreate = FormCreate
-  DesignSize = (
-    1249
-    691)
   TextHeight = 17
-  object LblAppName: TLabel
-    Left = 1018
-    Top = 158
-    Width = 130
-    Height = 17
-    Anchors = [akTop, akRight]
-    Caption = 'Programme '#224' stopper'
-  end
-  object LblDuration: TLabel
-    Left = 1018
-    Top = 219
-    Width = 69
-    Height = 17
-    Anchors = [akTop, akRight]
-    Caption = 'Dur'#233'e (sec.)'
-  end
-  object Splitter1: TSplitter
-    Left = 0
-    Top = 418
-    Width = 1249
-    Height = 3
-    Cursor = crVSplit
-    Align = alBottom
-    ExplicitTop = 0
-    ExplicitWidth = 421
-  end
-  object BtnListApps: TButton
-    Left = 1016
-    Top = 54
-    Width = 220
-    Height = 30
-    Anchors = [akTop, akRight]
-    Caption = #55357#56550' Applis en cours d'#39'ex'#233'cution'
-    TabOrder = 0
-    OnClick = BtnListAppsClick
-  end
-  object BtnStopApp: TButton
-    Left = 1018
-    Top = 249
-    Width = 220
-    Height = 30
-    Anchors = [akTop, akRight]
-    Caption = 'Stopper'
-    TabOrder = 1
-    OnClick = BtnStopAppClick
-  end
-  object EditAppName: TEdit
-    Left = 1018
-    Top = 182
-    Width = 220
-    Height = 25
-    Anchors = [akTop, akRight]
-    TabOrder = 2
-  end
-  object BtnStart: TButton
-    Left = 1018
-    Top = 311
-    Width = 220
-    Height = 30
-    Anchors = [akTop, akRight]
-    Caption = 'Red'#233'marrer tout'
-    TabOrder = 3
-    OnClick = BtnStartClick
-  end
-  object BtnCancel: TButton
-    Left = 1018
-    Top = 280
-    Width = 220
-    Height = 30
-    Anchors = [akTop, akRight]
-    Caption = 'Annuler Stop'
-    TabOrder = 4
-    OnClick = BtnCancelClick
-  end
-  object RzNumericEdit1: TRzNumericEdit
-    Left = 1165
-    Top = 215
-    Width = 45
-    Height = 25
-    Anchors = [akTop, akRight]
-    TabOrder = 5
-    DisplayFormat = ',0;(,0)'
-    Value = 30.000000000000000000
-  end
-  object UpDown1: TUpDown
-    Left = 1210
-    Top = 215
-    Width = 16
-    Height = 25
-    Anchors = [akTop, akRight]
-    Associate = RzNumericEdit1
-    Max = 600
-    Position = 30
-    TabOrder = 6
-  end
-  object RdioFrench: TRadioButton
-    Left = 1017
-    Top = 19
-    Width = 112
-    Height = 17
-    Anchors = [akTop, akRight]
-    Caption = 'Fran'#231'ais'
-    Checked = True
-    TabOrder = 7
-    TabStop = True
-    OnClick = RdioFrenchClick
-  end
-  object RdioEnglish: TRadioButton
-    Left = 1128
-    Top = 20
-    Width = 113
-    Height = 17
-    Anchors = [akTop, akRight]
-    Caption = 'English'
-    TabOrder = 8
-    OnClick = RdioEnglishClick
-  end
-  object PanelBottom: TPanel
-    AlignWithMargins = True
-    Left = 0
-    Top = 421
-    Width = 1009
-    Height = 270
-    Margins.Left = 0
-    Margins.Top = 0
-    Margins.Right = 240
-    Margins.Bottom = 0
-    Align = alBottom
+  object PanelRight: TPanel
+    Left = 1007
+    Top = 0
+    Width = 242
+    Height = 788
+    Align = alRight
     BevelOuter = bvNone
-    TabOrder = 9
-    object LblMsg: TLabel
-      Left = 318
-      Top = 1
-      Width = 59
-      Height = 17
-      Caption = 'Messages'
-    end
-    object LblClientList: TLabel
+    TabOrder = 0
+    DesignSize = (
+      242
+      788)
+    object LblAppName: TLabel
       Left = 11
-      Top = 1
-      Width = 91
+      Top = 158
+      Width = 130
       Height = 17
-      Caption = 'Liste des clients'
+      Anchors = [akTop, akRight]
+      Caption = 'Programme '#224' stopper'
+      ExplicitLeft = 1018
     end
-    object MemoLogs: TMemo
-      AlignWithMargins = True
-      Left = 316
-      Top = 25
-      Width = 690
-      Height = 242
-      Margins.Left = 6
-      Margins.Top = 25
-      Align = alClient
+    object LblDuration: TLabel
+      Left = 13
+      Top = 215
+      Width = 69
+      Height = 17
+      Anchors = [akTop, akRight]
+      Caption = 'Dur'#233'e (sec.)'
+    end
+    object BtnAgentStart: TButton
+      Left = 11
+      Top = 430
+      Width = 220
+      Height = 30
+      Anchors = [akTop, akRight]
+      Caption = 'Red'#233'marrer les agents'
       TabOrder = 0
+      OnClick = BtnAgentStartClick
     end
-    object ListViewClients: TMemo
-      AlignWithMargins = True
-      Left = 6
-      Top = 25
-      Width = 301
-      Height = 242
-      Margins.Left = 6
-      Margins.Top = 25
-      Align = alLeft
-      Lines.Strings = (
-        'ListViewClients')
+    object BtnAgentStop: TButton
+      Left = 11
+      Top = 398
+      Width = 220
+      Height = 30
+      Anchors = [akTop, akRight]
+      Caption = 'Arr'#234'ter les agents'
       TabOrder = 1
+      OnClick = BtnAgentStopClick
+    end
+    object BtnAppCopy: TButton
+      Left = 11
+      Top = 87
+      Width = 220
+      Height = 30
+      Anchors = [akTop, akRight]
+      Caption = 'Applications '#224' d'#233'ployer'
+      TabOrder = 2
+      OnClick = BtnAppCopyClick
+    end
+    object BtnCancel: TButton
+      Left = 11
+      Top = 303
+      Width = 220
+      Height = 30
+      Anchors = [akTop, akRight]
+      Caption = 'Annuler Stop'
+      TabOrder = 3
+      OnClick = BtnCancelClick
+    end
+    object BtnListApps: TButton
+      Left = 11
+      Top = 54
+      Width = 220
+      Height = 30
+      Anchors = [akTop, akRight]
+      Caption = #55357#56550' Applis en cours d'#39'ex'#233'cution'
+      TabOrder = 4
+      OnClick = BtnListAppsClick
+    end
+    object BtnStart: TButton
+      Left = 11
+      Top = 334
+      Width = 220
+      Height = 30
+      Anchors = [akTop, akRight]
+      Caption = 'Red'#233'marrer tout'
+      TabOrder = 5
+      OnClick = BtnStartClick
+    end
+    object BtnStopApp: TButton
+      Left = 11
+      Top = 272
+      Width = 220
+      Height = 30
+      Anchors = [akTop, akRight]
+      Caption = 'Stopper'
+      TabOrder = 6
+      OnClick = BtnStopAppClick
+    end
+    object BtnToggleFilter: TToggleSwitch
+      Left = 11
+      Top = 121
+      Width = 207
+      Height = 20
+      Anchors = [akTop, akRight]
+      StateCaptions.CaptionOn = 'Filtre app. '#224' d'#233'ployer ON'
+      StateCaptions.CaptionOff = 'Filtre app. '#224' d'#233'ployer OFF'
+      TabOrder = 7
+      OnClick = BtnToggleFilterClick
+    end
+    object EditAppName: TEdit
+      Left = 11
+      Top = 182
+      Width = 220
+      Height = 25
+      Anchors = [akTop, akRight]
+      TabOrder = 8
+    end
+    object RdioEnglish: TRadioButton
+      Left = 129
+      Top = 20
+      Width = 113
+      Height = 17
+      Anchors = [akTop, akRight]
+      Caption = 'English'
+      TabOrder = 9
+      OnClick = RdioEnglishClick
+    end
+    object RdioFrench: TRadioButton
+      Left = 11
+      Top = 20
+      Width = 84
+      Height = 17
+      Anchors = [akTop, akRight]
+      Caption = 'Fran'#231'ais'
+      Checked = True
+      TabOrder = 10
+      TabStop = True
+      OnClick = RdioFrenchClick
+    end
+    object RzNumericEdit1: TRzNumericEdit
+      Left = 167
+      Top = 212
+      Width = 45
+      Height = 25
+      Anchors = [akTop, akRight]
+      TabOrder = 11
+      DisplayFormat = ',0;(,0)'
+      Value = 30.000000000000000000
+    end
+    object UpDown1: TUpDown
+      Left = 212
+      Top = 212
+      Width = 16
+      Height = 25
+      Anchors = [akTop, akRight]
+      Associate = RzNumericEdit1
+      Max = 600
+      Position = 30
+      TabOrder = 12
+    end
+    object ChkSilent: TCheckBox
+      Left = 11
+      Top = 242
+      Width = 197
+      Height = 17
+      Alignment = taLeftJustify
+      Caption = 'Mode silencieux'
+      TabOrder = 13
     end
   end
-  object PanelTop: TPanel
-    AlignWithMargins = True
+  object PanelLeft: TPanel
     Left = 0
     Top = 0
-    Width = 1009
-    Height = 418
-    Margins.Left = 0
-    Margins.Top = 0
-    Margins.Right = 240
-    Margins.Bottom = 0
+    Width = 1007
+    Height = 788
     Align = alClient
-    BevelOuter = bvNone
-    TabOrder = 10
-    object LblAppList: TLabel
-      Left = 8
-      Top = 3
-      Width = 125
-      Height = 17
-      Caption = 'Liste des applications'
+    TabOrder = 1
+    object Splitter1: TSplitter
+      Left = 1
+      Top = 487
+      Width = 1005
+      Height = 3
+      Cursor = crVSplit
+      Align = alBottom
+      ExplicitLeft = -15
+      ExplicitTop = 402
+      ExplicitWidth = 870
     end
-    object StringGridApp: TStringGrid
+    object PanelTop: TPanel
       AlignWithMargins = True
-      Left = 3
-      Top = 25
-      Width = 1003
-      Height = 390
-      Margins.Top = 25
+      Left = 1
+      Top = 1
+      Width = 1005
+      Height = 486
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
       Align = alClient
-      ColCount = 6
-      DefaultRowHeight = 26
-      DefaultDrawing = False
-      FixedCols = 0
-      RowCount = 2
-      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goFixedColClick, goFixedRowClick, goFixedHotTrack, goFixedColDefAlign, goFixedRowDefAlign]
-      ParentShowHint = False
-      ShowHint = True
+      BevelOuter = bvNone
       TabOrder = 0
-      OnDblClick = StringGridAppDblClick
-      OnDrawCell = StringGridAppDrawCell
-      OnFixedCellClick = StringGridAppFixedCellClick
-      OnKeyDown = StringGridAppKeyDown
-      OnKeyPress = StringGridAppKeyPress
-      OnMouseMove = StringGridAppMouseMove
-      OnSetEditText = StringGridAppSetEditText
-      ColWidths = (
-        105
-        130
-        96
-        171
-        84
-        376)
+      object LblAppList: TLabel
+        Left = 8
+        Top = 3
+        Width = 125
+        Height = 17
+        Caption = 'Liste des applications'
+      end
+      object StringGridApp: TStringGrid
+        AlignWithMargins = True
+        Left = 3
+        Top = 25
+        Width = 999
+        Height = 458
+        Margins.Top = 25
+        Align = alClient
+        ColCount = 6
+        DefaultRowHeight = 26
+        DefaultDrawing = False
+        FixedCols = 0
+        RowCount = 2
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goFixedColClick, goFixedRowClick, goFixedHotTrack, goFixedColDefAlign, goFixedRowDefAlign]
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+        OnDblClick = StringGridAppDblClick
+        OnDrawCell = StringGridAppDrawCell
+        OnFixedCellClick = StringGridAppFixedCellClick
+        OnKeyDown = StringGridAppKeyDown
+        OnKeyPress = StringGridAppKeyPress
+        OnMouseMove = StringGridAppMouseMove
+        OnSetEditText = StringGridAppSetEditText
+        ColWidths = (
+          105
+          130
+          96
+          171
+          84
+          376)
+      end
     end
-  end
-  object BtnAgentStop: TButton
-    Left = 1018
-    Top = 369
-    Width = 220
-    Height = 30
-    Anchors = [akTop, akRight]
-    Caption = 'Arr'#234'ter les agents'
-    TabOrder = 11
-    OnClick = BtnAgentStopClick
-  end
-  object BtnAppCopy: TButton
-    Left = 1016
-    Top = 87
-    Width = 220
-    Height = 30
-    Anchors = [akTop, akRight]
-    Caption = 'Applications '#224' d'#233'ployer'
-    TabOrder = 12
-    OnClick = BtnAppCopyClick
-  end
-  object BtnToggleFilter: TToggleSwitch
-    Left = 1018
-    Top = 120
-    Width = 207
-    Height = 20
-    StateCaptions.CaptionOn = 'Filtre app. '#224' d'#233'ployer ON'
-    StateCaptions.CaptionOff = 'Filtre app. '#224' d'#233'ployer OFF'
-    TabOrder = 13
-    OnClick = BtnToggleFilterClick
+    object PanelBottom: TPanel
+      AlignWithMargins = True
+      Left = 1
+      Top = 490
+      Width = 1005
+      Height = 297
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alBottom
+      BevelOuter = bvNone
+      TabOrder = 1
+      object LblMsg: TLabel
+        Left = 318
+        Top = 1
+        Width = 59
+        Height = 17
+        Caption = 'Messages'
+      end
+      object LblClientList: TLabel
+        Left = 11
+        Top = 1
+        Width = 91
+        Height = 17
+        Caption = 'Liste des clients'
+      end
+      object MemoLogs: TMemo
+        AlignWithMargins = True
+        Left = 316
+        Top = 25
+        Width = 686
+        Height = 269
+        Margins.Left = 6
+        Margins.Top = 25
+        Align = alClient
+        TabOrder = 0
+      end
+      object ListViewClients: TMemo
+        AlignWithMargins = True
+        Left = 6
+        Top = 25
+        Width = 301
+        Height = 269
+        Margins.Left = 6
+        Margins.Top = 25
+        Align = alLeft
+        Lines.Strings = (
+          'ListViewClients')
+        TabOrder = 1
+      end
+    end
   end
   object IdTCPServer1: TIdTCPServer
     Bindings = <>

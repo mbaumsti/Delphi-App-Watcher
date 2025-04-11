@@ -38,6 +38,8 @@ contains
   AppWatcherClient_Component in 'AppWatcherClient_Component.pas',
   AppWatcher_ioHandler in '..\Common\AppWatcher_ioHandler.pas',
   AppWatcher_Lang in '..\Common\AppWatcher_Lang.pas',
-  AppWatcher_consts in '..\Common\AppWatcher_consts.pas';
+  AppWatcher_consts in '..\Common\AppWatcher_consts.pas',
+  PipesCommon in '..\Common\PipesCommon.pas',
+  PipeClient in '..\Common\PipeClient.pas';
 
 end.
