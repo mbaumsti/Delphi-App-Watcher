@@ -1,4 +1,4 @@
-object FormAppWatcherClient2: TFormAppWatcherClient2
+object FormAppWatcherClientSecond: TFormAppWatcherClientSecond
   Left = 0
   Top = 0
   Caption = 'FormAppWatcherClient - Second'

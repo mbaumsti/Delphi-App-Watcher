@@ -3,8 +3,8 @@
   Unit     : AppWatcher_ioHandler.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 24/02/2025
-  Version  : 2.0.0
+  Date     : 09/04/2025
+  Version  : 3.0.0
   License  : MIT
 
   Description :
@@ -31,7 +31,8 @@
                           !!! This change makes the version incompatible with v1 !!!
                         - Minor modification : Replaced TAppWatcherStrCommand with GetEnumName(TypeInfo(TAppWatcherCommand)
                         - Minor modification : Added GetCmdName function
-
+  - [09/04/2025] : v3.0 - Added TAppWatcherMessageQueue class for message queue management
+                        - Changed the message to manage a silent mode to stop and restart the application without warning the user
 
 *******************************************************************************)
 
@@ -39,11 +40,11 @@ Unit AppWatcher_ioHandler;
 
 Interface
 
-Uses windows, System.Classes, System.SysUtils, System.TypInfo, IdTCPClient, IdTCPConnection, IdComponent, IdGlobal,
-    IdBaseComponent, IdIOHandler, dialogs;
+Uses windows, System.Classes, System.SysUtils, System.TypInfo, System.SyncObjs,System.Generics.Collections,
+    IdTCPClient, IdTCPConnection, IdComponent, IdGlobal,  IdBaseComponent, IdIOHandler,  AppWatcher_consts ;
 
 Type
-    TAppWatcherCommand = (cmdUNKNOWN, cmdACK, cmdNACK, cmdSTOP, cmdWHO, cmdWHO_REPLY, cmdSTART, cmdCANCEL, cmdSTOP_REQUEST, cmdREPLY_STOP_REQUEST, cmdSTOP_AGENT);
+    TAppWatcherCommand = (cmdUNKNOWN, cmdACK, cmdNACK, cmdSTOP, cmdWHO, cmdWHO_REPLY, cmdSTART, cmdCANCEL, cmdSTOP_REQUEST, cmdREPLY_STOP_REQUEST, cmdSTOP_AGENT,cmdRESTART_AGENT);
 
     TAppWatcherMessage = Packed Record
         //  TAppWatcherMessage = record
@@ -55,10 +56,23 @@ Type
         AppPath: String[255]; // Chemin complet
         Params: String[255]; // Arguments
         Duration: Integer; // Temps avant arrêt
+        Silent : boolean;
         Procedure Clear;
-        Procedure Init(AHandle: HWnd; ACommand: TAppWatcherCommand; AAppPath, AParams: String; ADuration: integer);
+        Procedure Init(AHandle: HWnd; ACommand: TAppWatcherCommand; AAppPath, AParams: String; ADuration: integer;ASilent :boolean = false);
         Procedure SendMessage(AIOHandler: TIdIOHandler);
         Function CmdName: String;
+    End;
+
+    TAppWatcherMessageQueue = Class
+    private
+        FQueue: TQueue<TAppWatcherMessage>;
+        FLock: TCriticalSection;
+    public
+        Constructor Create;
+        Destructor Destroy; override;
+        Procedure Enqueue(Const Msg: TAppWatcherMessage);
+        Function Dequeue(Out Msg: TAppWatcherMessage): Boolean;
+        Function Count: Integer;
     End;
 
 Function ReadMessage(AIOHandler: TIdIOHandler; Out Msg: TAppWatcherMessage): Boolean;
@@ -92,7 +106,7 @@ Begin
     Result := GetCmdName(Command);
 End;
 
-Procedure TAppWatcherMessage.Init(AHandle: HWnd; ACommand: TAppWatcherCommand; AAppPath, AParams: String; ADuration: integer);
+Procedure TAppWatcherMessage.Init(AHandle: HWnd; ACommand: TAppWatcherCommand; AAppPath, AParams: String; ADuration: integer;ASilent :boolean = false);
 Begin
     Handle := AHandle;
     Command := ACommand;
@@ -101,6 +115,7 @@ Begin
     Params := AParams;
     Duration := ADuration;
     UserName := CurUser;
+    Silent:=ASilent;
 End;
 
 Procedure TAppWatcherMessage.SendMessage(AIOHandler: TIdIOHandler);
@@ -172,6 +187,56 @@ Begin
         End;
     End;
 End;
+
+
+constructor TAppWatcherMessageQueue.Create;
+begin
+  inherited Create;
+  FQueue := TQueue<TAppWatcherMessage>.Create;
+  FLock := TCriticalSection.Create;
+end;
+
+destructor TAppWatcherMessageQueue.Destroy;
+begin
+  FLock.Free;
+  FQueue.Free;
+  inherited Destroy;
+end;
+
+procedure TAppWatcherMessageQueue.Enqueue(const Msg: TAppWatcherMessage);
+begin
+  FLock.Enter;
+  try
+    FQueue.Enqueue(Msg);
+  finally
+    FLock.Leave;
+  end;
+end;
+
+function TAppWatcherMessageQueue.Dequeue(out Msg: TAppWatcherMessage): Boolean;
+begin
+  Result := False;
+  FLock.Enter;
+  try
+    if FQueue.Count > 0 then
+    begin
+      Msg := FQueue.Dequeue;
+      Result := True;
+    end;
+  finally
+    FLock.Leave;
+  end;
+end;
+
+function TAppWatcherMessageQueue.Count: Integer;
+begin
+  FLock.Enter;
+  try
+    Result := FQueue.Count;
+  finally
+    FLock.Leave;
+  end;
+end;
 
 End.
 

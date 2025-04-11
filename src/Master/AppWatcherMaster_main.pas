@@ -3,8 +3,8 @@
   Unit    : AppWatcherMaster_main.pas
   Author  : mbaumsti
   GitHub  : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date    : 28/02/2025
-  Version : 2.0.0
+  Date    : 09/04/2025
+  Version : 3.0.0
   License : MIT
 
   Description :
@@ -41,6 +41,8 @@
                         - Check if the MASTER is still the MASTER
                         - Added files deployment features
                         - Filtering app list with deployment list
+  - [09/04/2025] : v3.0 - Added agent restart feature. (uses AppWatcherStub)
+                        - Silent mode to stop and restart the application without notifying the user
 
   Note :
   -------
@@ -99,6 +101,10 @@ Type
         Splitter1: TSplitter;
         BtnAppCopy: TButton;
         BtnToggleFilter: TToggleSwitch;
+    BtnAgentStart: TButton;
+    PanelRight: TPanel;
+    PanelLeft: TPanel;
+    ChkSilent: TCheckBox;
         Procedure BtnAgentStopClick(Sender: TObject);
         Procedure BtnCancelClick(Sender: TObject);
         Procedure FormCreate(Sender: TObject);
@@ -126,6 +132,7 @@ Type
         Procedure TimerupdateClientTimer(Sender: TObject);
         Procedure BtnAppCopyClick(Sender: TObject);
         Procedure BtnToggleFilterClick(Sender: TObject);
+    procedure BtnAgentStartClick(Sender: TObject);
     private
         {Déclarations privées}
         FSortColumn: Integer;
@@ -694,10 +701,12 @@ Begin
     BtnStart.caption := FLanguageManager.GetMessage(section, 'BTN_START');
     BtnCancel.caption := FLanguageManager.GetMessage(section, 'BTN_CANCEL');
     BtnAgentStop.caption := FLanguageManager.GetMessage(section, 'BTN_STOP_AGENT');
+    BtnAgentStart.caption := FLanguageManager.GetMessage(section, 'BTN_START_AGENT');
 
     //🏷️ Mise à jour des labels
     LblAppName.caption := FLanguageManager.GetMessage(section, 'LBL_APP_NAME');
     LblDuration.caption := FLanguageManager.GetMessage(section, 'LBL_DURATION');
+    ChkSilent.Caption := FLanguageManager.GetMessage(section, 'CHK_SILENT');
     LblClientList.caption := FLanguageManager.GetMessage(section, 'LBL_CLIENT_LIST');
     LblMsg.caption := FLanguageManager.GetMessage(section, 'LBL_MSG');
     LblAppList.caption := FLanguageManager.GetMessage(section, 'LBL_APPLIST');
@@ -733,6 +742,8 @@ Begin
             RefMsg := 'CANCEL_SENT';
         cmdSTOP_AGENT:
             RefMsg := 'STOP_AGENT_SENT';
+        cmdRESTART_AGENT:
+            RefMsg := 'RESTART_AGENT_SENT';
     Else
         RefMsg := 'UNKNOWN_COMMAND';
     End;
@@ -796,11 +807,12 @@ Begin
     End;
 End;
 
+
 Procedure TFormAppWatcherMaster.BtnStartClick(Sender: TObject);
 Var
     Msg: TAppWatcherMessage;
 Begin
-    Msg.init(0, cmdSTART, '', '', 0); //Commande START
+    Msg.init(0, cmdSTART, '', '', 0,chkSilent.Checked); //Commande START
     SendMessageToClients(Msg);
 End;
 
@@ -815,7 +827,7 @@ Begin
         exit;
     End;
 
-    Msg.init(0, cmdSTOP, AppName, '', RzNumericEdit1.IntValue); //Commande STOP
+    Msg.init(0, cmdSTOP, AppName, '', RzNumericEdit1.IntValue,chkSilent.Checked); //Commande STOP
     SendMessageToClients(Msg);
 End;
 
@@ -824,10 +836,19 @@ Var
     Msg: TAppWatcherMessage;
 Begin
     If MessageDlg(FLanguageManager.GetMessage('MASTER', 'STOP_AGENT_REQUEST'), mtConfirmation, [mbyes, mbNo], 0, mbNo) = mryes Then Begin
-        Msg.init(0, cmdSTOP_AGENT, '', '', 0); //Commande STOP
+        Msg.init(0, cmdSTOP_AGENT, '', '', 0); //Commande STOP_AGENT
         SendMessageToClients(Msg);
     End;
 End;
+
+procedure TFormAppWatcherMaster.BtnAgentStartClick(Sender: TObject);
+Var
+    Msg: TAppWatcherMessage;
+Begin
+        Msg.init(0, cmdRESTART_AGENT, '', '', 0,chkSilent.Checked); //Commande RESTART_AGENT
+        SendMessageToClients(Msg);
+End;
+
 
 Procedure TFormAppWatcherMaster.BtnAppCopyClick(Sender: TObject);
 Begin
@@ -841,7 +862,7 @@ Procedure TFormAppWatcherMaster.BtnCancelClick(Sender: TObject);
 Var
     Msg: TAppWatcherMessage;
 Begin
-    Msg.init(0, cmdCANCEL, '', '', 0); //Commande CANCEL
+    Msg.init(0, cmdCANCEL, '', '', 0,chkSilent.Checked); //Commande CANCEL
     SendMessageToClients(Msg);
 End;
 

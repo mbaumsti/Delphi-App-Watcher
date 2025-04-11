@@ -28,6 +28,7 @@ Unit AppWatcher_consts;
 
 Interface
 
+
 Const
     AppWPassword: String = 'appW';
     MsgNoInstanceActiveEn: String = '❌ [ERROR] This AppWatcher instance is not active.';
@@ -38,6 +39,7 @@ Const
     LangFrIniFileName: String = 'AppWatcher_lang_fr.ini';
     LangEnIniFileName: String = 'AppWatcher_lang_en.ini';
     AppWatcherJsonFileName: String = 'AppWatcher.json';
+    cPipeName : string = 'NamedPipesAppWatcher';
 
 Implementation
 

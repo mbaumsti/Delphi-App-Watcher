@@ -1,5 +1,30 @@
 # Changelog  
 
+## ⚙️ v3.0.0 - 09/04/2025
+
+### ✨ Added
+- **🧩 New utility: `AppWatcherStub`**
+  - Lightweight stub that connects to the master and restarts the Agent executable on demand.
+  - Useful during Agent updates or replacements.
+
+### 🔄 Changed
+- **🔁 Replaced TCP/IP with Named Pipes for Client ↔ Agent communication**
+  - Improved reliability and performance, especially for local inter-process communication.
+  - Introduced new internal architecture based on the library [NamedPipesForDelphi](https://github.com/superflexible/NamedPipesForDelphi).
+  - The original code has been modularized into:
+    - `PipesCommon`: shared types/constants/utilities
+    - `PipeClient`: client implementation
+    - `PipeServer`: server implementation
+- ** Added a silent mode ** to stop and restart the application without warning the user
+
+### 🛠 Internal Refactoring
+- Legacy Indy TCP/IP logic removed from Client and Agent communication code.
+- Added clean and asynchronous pipe-based event handling for both sides.
+
+### 🧠 Notes
+- This change **requires** that all components are updated together (Master, Agent, Client).
+- The rest of the AppWatcher protocol remains compatible with v2.0.0.
+
 ## 🔄 v2.0.1 - 10/03/2025  
 
 ### 🛠 Fixed  

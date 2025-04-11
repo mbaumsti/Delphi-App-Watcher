@@ -3,8 +3,8 @@
   Unit     : AppWatcherClient_second.pas
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
-  Date     : 24/02/2025
-  Version  : 1.2
+  Date     : 09/04/2025
+  Version  : 3.0
   License  : MIT
 
   Description :
@@ -31,6 +31,7 @@
   - [19/02/2025] : Initial creation
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
   - [24/02/2025] : v1.2 Improved configuration file lookup to support shortcut resolution.
+  - [09/04/2025] : v3.0- Adapted to use named pipes instead of TCPIP for communication with the local agent.
 
   Notes :
   -------
@@ -48,7 +49,7 @@ uses
   AppWatcherClient_Component;
 
 type
-  TFormAppWatcherClient2 = class(TForm)
+  TFormAppWatcherClientSecond = class(TForm)
     Memo1: TMemo;
     AppWatcherClient1: TAppWatcherClient;
   private
@@ -58,7 +59,7 @@ type
   end;
 
 var
-  FormAppWatcherClient2: TFormAppWatcherClient2;
+  FormAppWatcherClientSecond: TFormAppWatcherClientsecond;
 
 implementation
 

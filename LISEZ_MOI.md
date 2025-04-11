@@ -1,12 +1,18 @@
+# 🚀 AppWatcher – Supervision & Déploiement à Distance pour les Développeurs  
 
-# 🚀 AppWatcher - Gestion d'Applications à Distance pour les Développeurs  
+## Outil permettant de stopper proprement puis redémarrer des applications distantes, afin de libérer l’exécutable sur un disque partagé pour le remplacer.
 
 [This page in English](https://github.com/mbaumsti/Delphi-App-Watcher/tree/main/README.md) 
 
-**AppWatcher** est un **composant Delphi** permettant à une application d’être **contrôlée à distance** par une application **superviseur** dédiée, incluse dans la solution.  
+**AppWatcher** est un **composant Delphi** permettant à une application d’être **contrôlée à distance** par une **application superviseur dédiée**, incluse dans la solution.
 
-Il est conçu pour les **développeurs et administrateurs IT** qui doivent **arrêter proprement**,  
-**remplacer**, **redémarrer des applications** et désormais **déployer** des applications, sans utiliser **RDP** ni accéder physiquement à chaque ordinateur.  
+Il est conçu pour les **développeurs et administrateurs IT** qui doivent :
+
+- **Arrêter proprement** des applications  
+- **Déployer sur un dossier partagé**  
+- **Les redémarrer à distance**  
+
+Tout cela **sans utiliser RDP** ni accéder physiquement à chaque machine.
 
 **✅ Développé en Delphi 12.2**  
 
@@ -28,14 +34,17 @@ Il est conçu pour les **développeurs et administrateurs IT** qui doivent **arr
 
 ## 🚀 Fonctionnalités  
 
-✅ **Nouveau (v2.0) : Déploiement d'applications** : Copie automatique et intelligente des fichiers exécutables.  
+ 
 ✅ **Arrêt des applications à distance** avec une simple commande.  
 ✅ **Définition d’un compte à rebours avant l'arrêt** pour notifier les utilisateurs.  
-✅ **Redémarrage automatique des applications** après une mise à jour.  
+✅ **Redémarrage controlé des applications** après une mise à jour.  
 ✅ **Support multilingue** (Français & Anglais).  
 ✅ **Paramètres configurables** via des fichiers INI.  
-✅ **Communication via Indy TCP/IP** pour une messagerie sécurisée.  
+✅ **Communication via Indy TCP/IP et Named pipes** pour une messagerie sécurisée.  
 ✅ **Léger et efficace** – ne nécessite pas de privilèges administrateur.  
+✅ **Nouveau (v3.0): Nouvelle architecture utilisant les Named Pipes** pour la communication locale entre les Clients et l'Agent.  
+✅ **Nouveau (v3.0) : Nouvel utilitaire `AppWatcherStub`** permettant de relancer l'Agent après l'avoir arrêté.
+✅ **Nouveau (v2.0): Déploiement d'applications** : Copie automatique et optimisée des fichiers exécutables. 
 
 ---
 
@@ -52,14 +61,16 @@ AppWatcher est composé de **trois éléments principaux** :
 - Peut demander **le redémarrage de toutes les applications gérées** après une mise à jour.  
 - Peut demander **l’arrêt de tous les Agents**.
 - **Nouveau (v2.0) : Gère la liste des applications à déployer** via une interface dédiée.   
-- **Nouveau (v2.0) : Tri et filtrage** pour afficher uniquement les applications à déployer. 
+- **Nouveau (v2.0) : Tri et filtrage** pour afficher uniquement les applications à déployer.
+- **Nouveau (v3.0): Utilitaire AppWatcherStub ** qui permet de relancer l'agent après l'avoir arrêté. 
 
-2. **🖥️ AppWatcher Agent** – Un **service léger** exécuté sur les machines distantes qui :  
+2. **🖥️ AppWatcher Agent** – Une **application légère** exécutée en arrière plan sur les machines distantes qui :
 
 - Écoute les **commandes** envoyées par le Master.  
-- Communique avec les **applications locales** via le composant `TAppWatcherClient`.  
+- Communique avec les **applications locales** avec des Named pipes via le composant `TAppWatcherClient`.  
 - Notifie les utilisateurs et demande aux applications de **s'arrêter** lorsqu'une mise à jour est nécessaire.  
-- Maintient une **liste locale des applications** à redémarrer après la mise à jour.  
+- Maintient une **liste locale des applications** à redémarrer après la mise à jour.
+
 
 3. **🖥️ Composant Client AppWatcher** – Un **composant Delphi (`TAppWatcherClient`)** qui :  
 
@@ -75,8 +86,8 @@ AppWatcher est composé de **trois éléments principaux** :
 
 ## 📦 Installation  
 
-👉 **Des binaires précompilés sont disponibles dans la version v2.0.0 pour un test rapide sans compilation.**  
-📌 [Télécharger ici](https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v2.0.1)  
+👉 **Des binaires précompilés sont disponibles dans la version v3.0.0 pour un test rapide sans compilation.**  
+📌 [Télécharger ici](https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v3.0.0)  
 
 ### 🔹 **1. Configuration du serveur Master**  
 
@@ -163,16 +174,21 @@ L’application **`AppWatcherClient.dproj`** est fournie pour **tester l’inté
 
 Cet outil vous permet de **tester les fonctionnalités d’AppWatcher** avant d'intégrer `TAppWatcherClient` dans vos applications finales. 🚀  
 
+
+---
+
+## Ressources
+
+🖼 Attribution des icônes :
+Certaines icônes utilisées dans ce projet proviennent de [Icons8](https://icons8.com).  
+Conformément à la licence de Icons8, une attribution est requise sauf si vous disposez d’un abonnement payant.
+
+🔌 Bibliothèque Named Pipes :
+Ce projet intègre l’excellente bibliothèque [NamedPipesForDelphi](https://github.com/superflexible/NamedPipesForDelphi), initialement développée par **Russell** et publiée par **Tobias Giesen** sous la licence *The Unlicense*.  
+Le code source a été **modularisé en trois unités** (`PipesCommon`, `PipeClient`, `PipeServer`) afin de faciliter son intégration dans AppWatcher
+
 ---
 
 ## 📜 Historique des versions  
 
 L'historique complet des versions est disponible dans [Changelog.md](CHANGELOG.md).  
-
----
-
-## 🎨 Attribution des icônes  
-
-Certaines icônes utilisées dans ce projet proviennent de [Icons8](https://icons8.com).  
-Conformément à leur licence, une attribution est requise sauf en cas d'abonnement payant.  
-

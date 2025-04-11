@@ -140,6 +140,8 @@
         <DCCReference Include="..\Common\AppWatcher_ioHandler.pas"/>
         <DCCReference Include="..\Common\AppWatcher_Lang.pas"/>
         <DCCReference Include="..\Common\AppWatcher_consts.pas"/>
+        <DCCReference Include="..\Common\PipesCommon.pas"/>
+        <DCCReference Include="..\Common\PipeServer.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

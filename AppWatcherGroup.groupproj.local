@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
-	<Transactions/>
+	<Transactions>
+    <Transaction>2025/04/08 07:03:00.000.122,U:\Interne_RS\Developpement\Dev_Delphi\Travail12.Athens\Production\AppWatcher2\AppWatcherGroup2.groupproj=U:\Interne_RS\Developpement\Dev_Delphi\Travail12.Athens\Production\AppWatcher2\AppWatcherGroup.groupproj</Transaction>
+    <Transaction>2025/04/08 07:07:26.000.556,U:\Interne_RS\Developpement\Dev_Delphi\Travail12.Athens\Production\AppWatcher2\AppWatcher2Group.groupproj=U:\Interne_RS\Developpement\Dev_Delphi\Travail12.Athens\Production\AppWatcher2\AppWatcherGroup2.groupproj</Transaction>
+  </Transactions>
 	<Default.Personality>
 		<Projects ActiveProject="U:\Interne_RS\Developpement\Dev_Delphi\Travail12.Athens\Production\AppWatcher\src\Master\AppWatcherMaster.dproj"/>
 	</Default.Personality>

@@ -14,6 +14,6 @@ begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TFormAppWatcherClient, FormAppWatcherClient);
-  Application.CreateForm(TFormAppWatcherClient2, FormAppWatcherClient2);
+  Application.CreateForm(TFormAppWatcherClientSecond, FormAppWatcherClientSecond);
   Application.Run;
 end.
