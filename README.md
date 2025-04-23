@@ -41,7 +41,7 @@ All of this **without using RDP** or physically accessing each machine.
 ✅ **Configurable settings** via INI files.  
 ✅ **Communication via Indy TCP/IP and Named Pipes** for secure messaging.  
 ✅ **Lightweight and efficient** – does not require admin privileges.  
-✅ **New (v2.0): Application deployment** – automatic and optimized copying of executable files.
+✅ **New (v2.0): Application deployment** – automatic and optimized copying of executable files. 
 ✅ **New (v3.0): New architecture using Named Pipes** for local communication between Clients and the Agent.  
 ✅ **New (v3.0): New `AppWatcherStub` utility** to relaunch the Agent after it has been stopped.  
 ✅ **New (v3.1): Backup of replaced executables** with rotation and recovery management.
@@ -60,10 +60,10 @@ AppWatcher consists of **three main components**:
    - Supports **cancellation of a STOP request** before the countdown expires.  
    - Can request **all managed applications to restart** after an update.  
    - Can request all **Agents to shut down**. 
-   - **New (v3.0): AppWatcherStub utility** to allow restarting agent after stopping it.
-   - **New (v2.0): Manages the list of applications to deploy** via a dedicated interface.
-   - **New (v2.0): Sorting and filtering** to display only the applications to deploy.
-   - **New (v3.1): Backup of replaced executables ** with rotation and recovery management.
+   - **New (v3.0): AppWatcherStub utility** to allow restarting agent after stopping it. 
+   - **New (v2.0): Manages the list of applications to deploy** via a dedicated interface. 
+   - **New (v2.0): Sorting and filtering** to display only the applications to deploy. 
+   - **New (v3.1): Backup of replaced executables** with rotation and recovery management.
 
 2. **🖥️ AppWatcher Agent** – A **lightweight background application** running on remote machines that:
    
