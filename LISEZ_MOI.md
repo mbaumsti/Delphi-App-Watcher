@@ -41,11 +41,11 @@ Tout cela **sans utiliser RDP** ni accéder physiquement à chaque machine.
 ✅ **Support multilingue** (Français & Anglais).  
 ✅ **Paramètres configurables** via des fichiers INI.  
 ✅ **Communication via Indy TCP/IP et Named pipes** pour une messagerie sécurisée.  
-✅ **Léger et efficace** – ne nécessite pas de privilèges administrateur. 
+✅ **Léger et efficace** – ne nécessite pas de privilèges administrateur.  
 ✅ **Nouveau (v2.0): Déploiement d'applications** : Copie automatique et optimisée des fichiers exécutables.  
 ✅ **Nouveau (v3.0): Nouvelle architecture utilisant les Named Pipes** pour la communication locale entre les Clients et l'Agent.  
-✅ **Nouveau (v3.0) : Nouvel utilitaire `AppWatcherStub`** permettant de relancer l'Agent après l'avoir arrêté.
-✅ **Nouveau (v3.1) : Sauvegarde des executables remplacés** avec gestion des rotations et de la récupération.
+✅ **Nouveau (v3.0) : Nouvel utilitaire `AppWatcherStub`** permettant de relancer l'Agent après l'avoir arrêté.  
+✅ **Nouveau (v3.1) : Sauvegarde des executables remplacés** avec gestion des rotations et de la récupération.  
 
 ---
 
@@ -62,9 +62,9 @@ AppWatcher est composé de **trois éléments principaux** :
 - Peut demander **le redémarrage de toutes les applications gérées** après une mise à jour.  
 - Peut demander **l’arrêt de tous les Agents**.
 - **Nouveau (v2.0) : Gère la liste des applications à déployer** via une interface dédiée.   
-- **Nouveau (v2.0) : Tri et filtrage** pour afficher uniquement les applications à déployer.
-- **Nouveau (v3.0): Utilitaire AppWatcherStub ** qui permet de relancer l'agent après l'avoir arrêté. 
-- **Nouveau (v3.1) : Sauvegarde des executables remplacés** avec gestion des rotations et de la récupération.
+- **Nouveau (v2.0) : Tri et filtrage** pour afficher uniquement les applications à déployer.  
+- **Nouveau (v3.0): Utilitaire AppWatcherStub** qui permet de relancer l'agent après l'avoir arrêté.  
+- **Nouveau (v3.1) : Sauvegarde des executables remplacés** avec gestion des rotations et de la récupération.  
 
 2. **🖥️ AppWatcher Agent** – Une **application légère** exécutée en arrière plan sur les machines distantes qui :
 
