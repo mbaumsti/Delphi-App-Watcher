@@ -44,7 +44,7 @@ All of this **without using RDP** or physically accessing each machine.
 ✅ **New (v2.0): Application deployment** – automatic and optimized copying of executable files.
 ✅ **New (v3.0): New architecture using Named Pipes** for local communication between Clients and the Agent.  
 ✅ **New (v3.0): New `AppWatcherStub` utility** to relaunch the Agent after it has been stopped.  
-✅ **New (v3.1): Backup of replaced executables ** with rotation and recovery management.
+✅ **New (v3.1): Backup of replaced executables** with rotation and recovery management.
 
 ---
 
