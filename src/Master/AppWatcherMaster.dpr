@@ -9,16 +9,19 @@ uses
   AppWatcherMaster_Deploy in 'AppWatcherMaster_Deploy.pas' {FormDeployManager},
   Vcl.Themes,
   Vcl.Styles,
-  AppWatcherMaster_AddFile in 'AppWatcherMaster_AddFile.pas' {DlgAddFile};
+  AppWatcherMaster_AddFile in 'AppWatcherMaster_AddFile.pas' {DlgAddFile},
+  AppWatcherMaster_Restore in 'AppWatcherMaster_Restore.pas' {DlgRestore},
+  AppWatcherMaster_Backup in 'AppWatcherMaster_Backup.pas',
+  AppWatcherMaster_DeployOptions in 'AppWatcherMaster_DeployOptions.pas' {DlgDeployOptions};
 
 {$R *.res}
 
 Begin
     Application.Initialize;
     Application.MainFormOnTaskbar := true;
-    Application.ModalPopupMode :=  pmExplicit ;
+    Application.ModalPopupMode := pmExplicit;
     TStyleManager.TrySetStyle('Wedgewood Light');
     Application.CreateForm(TFormAppWatcherMaster, FormAppWatcherMaster);
-  Application.Run;
+    Application.Run;
 End.
 

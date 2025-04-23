@@ -12,6 +12,7 @@ object FormDeployManager: TFormDeployManager
   Font.Style = []
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   DesignSize = (
     1282
     704)
@@ -89,5 +90,15 @@ object FormDeployManager: TFormDeployManager
     Caption = 'Modifier'
     TabOrder = 2
     OnClick = BtnModifClick
+  end
+  object BtnVersions: TButton
+    Left = 1061
+    Top = 662
+    Width = 210
+    Height = 30
+    Anchors = [akLeft, akBottom]
+    Caption = 'Versions'
+    TabOrder = 6
+    OnClick = BtnVersionsClick
   end
 end

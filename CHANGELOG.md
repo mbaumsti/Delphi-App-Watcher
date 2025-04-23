@@ -1,5 +1,31 @@
 # Changelog  
 
+### 🚀 v3.1.0 – 2025-04-23
+
+### ✨ Added
+- **Deployment with rotation**
+  - `AppWatcherMaster_Deploy` can now keep an **automatically rotated backup history** of deployed versions.
+  - New `[Backup]` section in `AppWatcher.ini`  
+    | Key | Description | Example |
+    |-----|-------------|---------|
+    | `MaxVersions` | Maximum number of backups to retain | `2` |
+    | `Folder` | Backup destination (leave blank = EXE directory) | `V:\Backup` |
+  - When `MaxVersions` is reached, the oldest backup is removed before the next deployment.
+
+- **Multi-version compatibility – `TAWStringArray`**
+  - Conditional alias in `AppWatcher_Lang.pas`  
+    - Delphi 12 + : `TArray<string>`  
+    - Delphi ≤ 11 : `TStringDynArray`
+  - Eliminates **E2010 “Incompatible types”** across all supported Delphi versions.
+
+### 🐞 Fixed
+- **README**: download link now points to `/releases/latest`, preventing 404 errors after a new tag is published.
+
+### 🔄 Upgrade Notes
+1. **Master only:** ensure `Folder` is writable when rotation is enabled.
+2. Re-compile all projects so the new `TAWStringArray` alias is available.
+
+
 ## ⚙️ v3.0.0 - 09/04/2025
 
 ### ✨ Added

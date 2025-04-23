@@ -4,7 +4,7 @@
   Author  : mbaumsti
   GitHub  : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date    : 07/03/2025
-  Version : 2.0.1
+  Version : 3.1
   License : MIT
 
   Description :
@@ -25,6 +25,8 @@
   - [07/03/2025] : Initial creation
   - [10/03/2025] : v2.0.1 Bug in item deletion and selection after sorting (DeleteCopyItem and AppListDblClick )
                           adding `GetRealIndexFromSelected` who retrieves the correct index
+  - [21/04/2025] : v3.1.0  - Default sorting on the status column
+                           - Deployment with executable backup rotations
 
   Note :
   -------
@@ -38,7 +40,8 @@ Interface
 Uses
     Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
     Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, System.JSON, Vcl.StdCtrls, Vcl.CheckLst,
-    System.IOUtils, System.DateUtils, System.Generics.Collections, AppWatcher_Lang, AppWatcher_consts;
+    System.IOUtils, System.DateUtils, System.Generics.Collections, AppWatcher_Lang, AppWatcher_consts,
+    system.types, inifiles;
 
 Type
 
@@ -53,6 +56,7 @@ Type
         BtnDel: TButton;
         BtnDeployExecute: TButton;
         BtnModif: TButton;
+        BtnVersions: TButton;
         Procedure BtnRefreshClick(Sender: TObject);
         Procedure BtnAddFileClick(Sender: TObject);
         Procedure AppListDblClick(Sender: TObject);
@@ -63,6 +67,8 @@ Type
         Procedure BtnDeployExecuteClick(Sender: TObject);
         Procedure AppListColumnClick(Sender: TObject; Column: TListColumn);
         Procedure BtnModifClick(Sender: TObject);
+        Procedure BtnVersionsClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     private
         { Déclarations privées }
         FColumns: TDictionary<String, TListColumn>;
@@ -91,7 +97,7 @@ Var
 Implementation
 
 Uses
-    AppWatcherMaster_AddFile;
+    AppWatcherMaster_AddFile, AppWatcherMaster_Restore, AppWatcherMaster_Backup, AppWatcherMaster_DeployOptions;
 
 {$R *.dfm}
 
@@ -104,6 +110,8 @@ Const
     cColDestDir: String = 'DestDir';
     cColDestDate: String = 'DestDate';
     cColIdx: String = 'idx';
+
+    //=================================================================================================================
 
 Function CompareAppItems(Item1, Item2: TListItem; ParamSort: Integer): Integer; stdcall;
 Var
@@ -135,6 +143,8 @@ Begin
     Else
         Result := CompareText(Text2, Text1); // Tri décroissant
 End;
+
+//=============================================================================================================
 
 Function TFormDeployManager.GetRealIndexFromSelected: Integer;
 Begin
@@ -168,6 +178,8 @@ Begin
 End;
 
 Procedure TFormDeployManager.Execute(LngManager: TAppLangManager);
+Var
+    SortParam: integer;
 Begin
     FLanguageManager := LngManager;
 
@@ -184,8 +196,18 @@ Begin
     BtnAddFile.Caption := FLanguageManager.GetMessage('MASTER_DEPLOY', 'BTN_ADDFILE');
     BtnDel.Caption := FLanguageManager.GetMessage('MASTER_DEPLOY', 'BTN_DELFILE');
     BtnDeployExecute.Caption := FLanguageManager.GetMessage('MASTER_DEPLOY', 'BTN_DEPLOY');
+    BtnVersions.Caption := FLanguageManager.GetMessage('MASTER_DEPLOY', 'BTN_VERSIONS');
 
     LoadFromJSON(AppList);
+    FSortColumn := FColumns[cColStatus].Index; // tri par défaut sur la colonne status
+    FSortAscending := True; // On commence en ascendant
+
+    // Encoder les paramètres dans un Integer pour les transmettre
+    SortParam := MakeLong(FSortColumn, Ord(FSortAscending));
+
+    // Trier la liste
+    AppList.CustomSort(@CompareAppItems, SortParam);
+
     Show;
     //    SetWindowPos(Self.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE);
 End;
@@ -193,6 +215,7 @@ End;
 Procedure TFormDeployManager.FormClose(Sender: TObject;
     Var Action: TCloseAction);
 Begin
+
     FreeAndNil(DlgAddFile);
 End;
 
@@ -203,6 +226,11 @@ Begin
 
     CreateListColumns;
 End;
+
+procedure TFormDeployManager.FormDestroy(Sender: TObject);
+begin
+   FreeAndNil(FColumns);
+end;
 
 Procedure TFormDeployManager.CreateListColumns;
 Var
@@ -343,10 +371,25 @@ Var
     i: Integer;
     SourceFile, DestFile: String;
     CopyStatus: Boolean;
+    Settings: TBackupSettings;
+    OptDlg: TDlgDeployOptions;
+
 Begin
     If AppList.Items.Count = 0 Then Begin
-        ShowMessage('Aucun fichier à copier.');
+        ShowMessage(FLanguageManager.GetMessage('MASTER_DEPLOY', 'MSG_NOFILES'));
         Exit;
+    End;
+
+    // lecture des valeurs par défaut
+    Settings := LoadBackupSettings;
+
+    //  dialogue d’options
+    OptDlg := TDlgDeployOptions.Create(Self);
+    Try
+        If Not OptDlg.Execute(FLanguageManager, Settings) Then
+            Exit; // utilisateur a annulé
+    Finally
+        OptDlg.Free;
     End;
 
     For i := 0 To AppList.Items.Count - 1 Do Begin
@@ -374,6 +417,10 @@ Begin
             If Not DirectoryExists(ExtractFilePath(DestFile)) Then
                 ForceDirectories(ExtractFilePath(DestFile));
 
+            // Sauvegarde avant écrasement
+            If FileExists(DestFile) Then
+                BackupWithTimestamp(DestFile, Settings);
+
             // Copier le fichier en écrasant s'il existe déjà
             TFile.Copy(SourceFile, DestFile, True);
             CopyStatus := True;
@@ -393,6 +440,31 @@ Begin
     End;
 
     ShowMessage('Copie terminée !');
+End;
+
+Procedure TFormDeployManager.BtnVersionsClick(Sender: TObject);
+Var
+    RealIdx: Integer;
+    DestFile: String;
+    Settings: TBackupSettings;
+    Dlg: TDlgRestore;
+Begin
+    RealIdx := GetRealIndexFromSelected;
+    If RealIdx = -1 Then Exit;
+
+    DestFile := TPath.Combine(
+        FCopyList[RealIdx].DestDir,
+        FCopyList[RealIdx].Name);
+
+    Settings := LoadBackupSettings;
+
+    Dlg := TDlgRestore.Create(Self);
+    Try
+        If Dlg.Execute(DestFile, Settings, FLanguageManager) Then
+            RefreshListView(AppList); // dates/statuts mis à jour
+    Finally
+        Dlg.Free;
+    End;
 End;
 
 Procedure TFormDeployManager.BtnDelClick(Sender: TObject);

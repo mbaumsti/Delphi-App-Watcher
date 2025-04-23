@@ -4,7 +4,7 @@
   Author  : mbaumsti
   GitHub  : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date    : 09/04/2025
-  Version : 3.0.0
+  Version : 3.1
   License : MIT
 
   Description :
@@ -43,6 +43,9 @@
                         - Filtering app list with deployment list
   - [09/04/2025] : v3.0 - Added agent restart feature. (uses AppWatcherStub)
                         - Silent mode to stop and restart the application without notifying the user
+  - [21/04/2025) : v3.1 - Fixed close issue with Adding test  if assigned(FLanguageManager) in IdTCPServer1Disconnect
+                        - Fixed read of ini file StopTimeOut value in on create
+                        - Fixed read of ini file Port value in TimerupdateClientTimer
 
   Note :
   -------
@@ -75,6 +78,7 @@ Type
         Class Operator Equal(Const A, B: TAppRec): Boolean;
     End;
 
+
     TFormAppWatcherMaster = Class(TForm)
         IdTCPServer1: TIdTCPServer;
         MemoLogs: TMemo;
@@ -101,10 +105,10 @@ Type
         Splitter1: TSplitter;
         BtnAppCopy: TButton;
         BtnToggleFilter: TToggleSwitch;
-    BtnAgentStart: TButton;
-    PanelRight: TPanel;
-    PanelLeft: TPanel;
-    ChkSilent: TCheckBox;
+        BtnAgentStart: TButton;
+        PanelRight: TPanel;
+        PanelLeft: TPanel;
+        ChkSilent: TCheckBox;
         Procedure BtnAgentStopClick(Sender: TObject);
         Procedure BtnCancelClick(Sender: TObject);
         Procedure FormCreate(Sender: TObject);
@@ -132,7 +136,7 @@ Type
         Procedure TimerupdateClientTimer(Sender: TObject);
         Procedure BtnAppCopyClick(Sender: TObject);
         Procedure BtnToggleFilterClick(Sender: TObject);
-    procedure BtnAgentStartClick(Sender: TObject);
+        Procedure BtnAgentStartClick(Sender: TObject);
     private
         {Déclarations privées}
         FSortColumn: Integer;
@@ -230,6 +234,8 @@ Begin
     Result := (A.ClientIp = B.ClientIp) And
     (A.AppHandle = B.AppHandle);
 End;
+
+
 
 Function TFormAppWatcherMaster.HostName(Context: TIdContext): String;
 Begin
@@ -330,6 +336,7 @@ Begin
             If ServerIP <> ServerIPini Then
                 Ini.WriteString('MasterConfig', 'ServerIP', ServerIP);
 
+            RzNumericEdit1.IntValue:= Ini.ReadInteger('MasterConfig', 'StopTimeOut',30);
         Finally
             Ini.Free;
         End;
@@ -807,12 +814,11 @@ Begin
     End;
 End;
 
-
 Procedure TFormAppWatcherMaster.BtnStartClick(Sender: TObject);
 Var
     Msg: TAppWatcherMessage;
 Begin
-    Msg.init(0, cmdSTART, '', '', 0,chkSilent.Checked); //Commande START
+    Msg.init(0, cmdSTART, '', '', 0, chkSilent.Checked); //Commande START
     SendMessageToClients(Msg);
 End;
 
@@ -827,7 +833,7 @@ Begin
         exit;
     End;
 
-    Msg.init(0, cmdSTOP, AppName, '', RzNumericEdit1.IntValue,chkSilent.Checked); //Commande STOP
+    Msg.init(0, cmdSTOP, AppName, '', RzNumericEdit1.IntValue, chkSilent.Checked); //Commande STOP
     SendMessageToClients(Msg);
 End;
 
@@ -841,14 +847,13 @@ Begin
     End;
 End;
 
-procedure TFormAppWatcherMaster.BtnAgentStartClick(Sender: TObject);
+Procedure TFormAppWatcherMaster.BtnAgentStartClick(Sender: TObject);
 Var
     Msg: TAppWatcherMessage;
 Begin
-        Msg.init(0, cmdRESTART_AGENT, '', '', 0,chkSilent.Checked); //Commande RESTART_AGENT
-        SendMessageToClients(Msg);
+    Msg.init(0, cmdRESTART_AGENT, '', '', 0, chkSilent.Checked); //Commande RESTART_AGENT
+    SendMessageToClients(Msg);
 End;
-
 
 Procedure TFormAppWatcherMaster.BtnAppCopyClick(Sender: TObject);
 Begin
@@ -862,7 +867,7 @@ Procedure TFormAppWatcherMaster.BtnCancelClick(Sender: TObject);
 Var
     Msg: TAppWatcherMessage;
 Begin
-    Msg.init(0, cmdCANCEL, '', '', 0,chkSilent.Checked); //Commande CANCEL
+    Msg.init(0, cmdCANCEL, '', '', 0, chkSilent.Checked); //Commande CANCEL
     SendMessageToClients(Msg);
 End;
 
@@ -872,7 +877,8 @@ Begin
     TThread.Queue(Nil,
         Procedure
         Begin
-            MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'CLIENT_CONNECTED'), [HostName(AContext)]));
+            If assigned(FLanguageManager) Then
+                MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'CLIENT_CONNECTED'), [HostName(AContext)]));
         End);
     sleep(50);
 End;
@@ -885,7 +891,8 @@ Begin
     TThread.Queue(Nil,
         Procedure
         Begin
-            MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'CLIENT_DISCONNECTED'), [Name]));
+            If assigned(FLanguageManager) Then
+                MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'CLIENT_DISCONNECTED'), [Name]));
         End);
 End;
 
@@ -893,6 +900,7 @@ Procedure TFormAppWatcherMaster.TimerupdateClientTimer(Sender: TObject);
 Var
     ini: TIniFile;
     ServerIPini, ServerIP: String;
+    Port,StopTimeOut : integer;
 Begin
     // Vérifier si le MASTER est toujour MASTER
     If FileExists(FIniFilePathName) And (FLastIniModified <> TFile.GetLastWriteTime(FIniFilePathName)) Then Begin
@@ -905,7 +913,17 @@ Begin
             //Si l'adresse dans le fichier ini ne correspond pas à l'IP alors celà veux dire que ce serveur à perdu le contrôle
 
             If ServerIP <> ServerIPini Then
+            begin
                 MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'LOST_CONTROL'), [ServerIPini]));
+                exit;
+            end;
+            port := Ini.ReadInteger('MasterConfig', 'Port', 2510);
+            if port<>IdTCPServer1.DefaultPort then begin
+               IdTCPServer1.Active:=false;
+               IdTCPServer1.DefaultPort:=Port;
+               IdTCPServer1.Active:=true;
+            end;
+
 
         Finally
             Ini.Free;

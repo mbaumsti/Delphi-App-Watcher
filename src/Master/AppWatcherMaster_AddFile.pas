@@ -9,11 +9,11 @@
 
   Description :
   -------------
- This unit allows you to add or modify entries in the list of applications to be deployed.
+  This unit allows you to add or modify entries in the list of applications to be deployed.
 
   Features :
   -----------
-- Select source file and destination directory
+  - Select source file and destination directory
 
   Change Log :
   ------------

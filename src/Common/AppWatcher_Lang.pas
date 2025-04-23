@@ -4,7 +4,7 @@
   Author   : mbaumsti
   GitHub   : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date     : 24/02/2025
-  Version  : 1.2.1
+  Version  : 3.1
   License  : MIT
 
   Description :
@@ -32,196 +32,189 @@
   - [23/02/2025] : v1.1 Added dynamic application title translation based on selected language
   - [24/02/2025] : v1.2 Improved FindConfigPath to support .lnk shortcuts when searching for configuration files.
   - [25/02/2025] : v1.2.1 - Fixed missing `Config\` folder check in `FindConfigPath`
+  - [23/04/2025] : v3.1 Introduction of the `TAWStringArray` type for Multi-version compatibility:
+                            - In Delphi 12+: alias to `TArray<string>`
+                            - In Delphi ≤ 11: alias to `TStringDynArray`
 
   Notes :
   -------
   This project is **open-source**. Contributions and improvements are welcome!
   *******************************************************************************)
 
-unit AppWatcher_Lang;
+Unit AppWatcher_Lang;
 
-interface
+Interface
 
-uses
+Uses
     System.SysUtils, System.IniFiles, System.Classes, Vcl.Forms, Windows, ActiveX, ComObj, ShlObj,
     AppWatcher_consts;
 
-type
+Type
+
+    {$IF CompilerVersion >= 36} // Delphi 12 Athens = 36.x
+        TAWStringArray = TArray<String>;
+    {$ELSE}
+        TAWStringArray = TStringDynArray;
+    {$ENDIF}
+
     TAppWatcherLang = (langFr, langEn);
 
-    TAppLangManager = class
+    TAppLangManager = Class
     private
         FIniFIleLang: TMemIniFile;
-        FLanguage:    TAppWatcherLang;
-        procedure SetLanguage(Value: TAppWatcherLang);
+        FLanguage: TAppWatcherLang;
+        Procedure SetLanguage(Value: TAppWatcherLang);
     public
-        constructor Create(ALanguage: TAppWatcherLang);
-        destructor Destroy; override;
+        Constructor Create(ALanguage: TAppWatcherLang);
+        Destructor Destroy; override;
         Function LoadLanguage(ALanguage: TAppWatcherLang): boolean;
-        function GetMessage(const Section, Key: string): string;
-        property Language: TAppWatcherLang read FLanguage write SetLanguage;
-    end;
+        Function GetMessage(Const Section, Key: String): String;
+        Property Language: TAppWatcherLang Read FLanguage Write SetLanguage;
+    End;
 
-function FindConfigPath(const IniFileName: string): string;
+Function FindConfigPath(Const IniFileName: String): String;
 
-implementation
+Implementation
 
-uses
+Uses
     System.IOUtils;
 
 {TAppLangManager}
 
-constructor TAppLangManager.Create(ALanguage: TAppWatcherLang);
-begin
+Constructor TAppLangManager.Create(ALanguage: TAppWatcherLang);
+Begin
     //Ne pas charger la langue ici, éviter les erreurs en mode conception
     FLanguage := ALanguage;
-end;
+End;
 
-destructor TAppLangManager.Destroy;
-begin
+Destructor TAppLangManager.Destroy;
+Begin
     FreeAndNil(FIniFIleLang);
-    inherited;
-end;
+    Inherited;
+End;
 
-procedure TAppLangManager.SetLanguage(Value: TAppWatcherLang);
-begin
-    if FLanguage <> Value then
-    begin
+Procedure TAppLangManager.SetLanguage(Value: TAppWatcherLang);
+Begin
+    If FLanguage <> Value Then Begin
         LoadLanguage(Value); //Charge la nouvelle langue
-    end;
-end;
+    End;
+End;
 
+Function ResolveShortcut(Const LnkFile: String): String;
+Var
+    ShellLink: IShellLink;
+    PersistFile: IPersistFile;
+    WidePath: Array[0..MAX_PATH] Of WideChar;
+    FindData: TWin32FindData;
+Begin
+    Result := '';
 
+    CoInitialize(Nil);
+    Try
+        ShellLink := CreateComObject(CLSID_ShellLink) As IShellLink;
+        PersistFile := ShellLink As IPersistFile;
 
-function ResolveShortcut(const LnkFile: string): string;
-var
-  ShellLink: IShellLink;
-  PersistFile: IPersistFile;
-  WidePath: array[0..MAX_PATH] of WideChar;
-  FindData: TWin32FindData;
-begin
-  Result := '';
+        If Succeeded(PersistFile.Load(PWideChar(WideString(LnkFile)), STGM_READ)) Then Begin
+            If Succeeded(ShellLink.GetPath(WidePath, MAX_PATH, FindData, 0)) Then
+                Result := WidePath;
+        End;
+    Finally
+        CoUninitialize;
+    End;
+End;
 
-  CoInitialize(nil);
-  try
-    ShellLink := CreateComObject(CLSID_ShellLink) as IShellLink;
-    PersistFile := ShellLink as IPersistFile;
+Function FindConfigPath(Const IniFileName: String): String;
+Var
+    CurrentPath, FullPath, ConfigPath, FileName, ResolvedPath: String;
+    Files: TAWStringArray;
+Begin
+    Result := '';
+    CurrentPath := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
 
-    if Succeeded(PersistFile.Load(PWideChar(WideString(LnkFile)), STGM_READ)) then
-    begin
-      if Succeeded(ShellLink.GetPath(WidePath, MAX_PATH, FindData, 0)) then
-        Result := WidePath;
-    end;
-  finally
-    CoUninitialize;
-  end;
-end;
+    While True Do Begin
+        // 🔹 Chercher directement le fichier .ini
+        FullPath := CurrentPath + IniFileName;
+        If FileExists(FullPath, True) Then Begin
+            Result := FullPath;
+            Exit;
+        End;
 
-function FindConfigPath(const IniFileName: string): string;
-var
-  CurrentPath, FullPath, ConfigPath, FileName, ResolvedPath: string;
-  Files: TArray<string>;
-begin
-  Result := '';
-  CurrentPath := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
+        // 🔹 Vérifier dans le sous-dossier Config
+        ConfigPath := CurrentPath + 'Config\' + IniFileName;
+        If FileExists(ConfigPath, True) Then Begin
+            Result := ConfigPath;
+            Exit;
+        End;
 
-  while True do
-  begin
-    // 🔹 Chercher directement le fichier .ini
-    FullPath := CurrentPath + IniFileName;
-    if FileExists(FullPath, True) then
-    begin
-      Result := FullPath;
-      Exit;
-    end;
+        // 🔹 Vérifier les raccourcis dans le dossier courant
+        Files := TDirectory.GetFiles(CurrentPath, '*.lnk', TSearchOption.soTopDirectoryOnly);
+        For FileName In Files Do Begin
+            ResolvedPath := ResolveShortcut(FileName);
+            If FileExists(ResolvedPath, True) And SameText(ExtractFileName(ResolvedPath), IniFileName) Then Begin
+                Result := ResolvedPath;
+                Exit;
+            End;
+        End;
 
-    // 🔹 Vérifier dans le sous-dossier Config
-    ConfigPath := CurrentPath + 'Config\' + IniFileName;
-    if FileExists(ConfigPath, True) then
-    begin
-      Result := ConfigPath;
-      Exit;
-    end;
+        // 🔹 Vérifier les raccourcis dans le dossier Config
+        If DirectoryExists(CurrentPath + 'Config\') Then Begin
+            Files := TDirectory.GetFiles(CurrentPath + 'Config\', '*.lnk', TSearchOption.soTopDirectoryOnly);
+            For FileName In Files Do Begin
+                ResolvedPath := ResolveShortcut(FileName);
+                If FileExists(ResolvedPath, True) And SameText(ExtractFileName(ResolvedPath), IniFileName) Then Begin
+                    Result := ResolvedPath;
+                    Exit;
+                End;
+            End;
+        End;
 
-    // 🔹 Vérifier les raccourcis dans le dossier courant
-    Files := TDirectory.GetFiles(CurrentPath, '*.lnk', TSearchOption.soTopDirectoryOnly);
-    for FileName in Files do
-    begin
-      ResolvedPath := ResolveShortcut(FileName);
-      if FileExists(ResolvedPath, True) and SameText(ExtractFileName(ResolvedPath), IniFileName) then
-      begin
-        Result := ResolvedPath;
-        Exit;
-      end;
-    end;
+        // 🔹 Vérifier si on est déjà à la racine du disque
+        If (CurrentPath = ExtractFileDrive(CurrentPath) + PathDelim) Or (CurrentPath = PathDelim) Then
+            Break;
 
-    // 🔹 Vérifier les raccourcis dans le dossier Config
-    if DirectoryExists(CurrentPath + 'Config\') then
-    begin
-      Files := TDirectory.GetFiles(CurrentPath + 'Config\', '*.lnk', TSearchOption.soTopDirectoryOnly);
-      for FileName in Files do
-      begin
-        ResolvedPath := ResolveShortcut(FileName);
-        if FileExists(ResolvedPath, True) and SameText(ExtractFileName(ResolvedPath), IniFileName) then
-        begin
-          Result := ResolvedPath;
-          Exit;
-        end;
-      end;
-    end;
+        // 🔹 Remonter d'un cran
+        CurrentPath := ExpandFileName(CurrentPath + '..\');
+        CurrentPath := IncludeTrailingPathDelimiter(CurrentPath);
+    End;
 
-    // 🔹 Vérifier si on est déjà à la racine du disque
-    if (CurrentPath = ExtractFileDrive(CurrentPath) + PathDelim) or (CurrentPath = PathDelim) then
-      Break;
-
-    // 🔹 Remonter d'un cran
-    CurrentPath := ExpandFileName(CurrentPath + '..\');
-    CurrentPath := IncludeTrailingPathDelimiter(CurrentPath);
-  end;
-
-  // 📌 Dernier recours : dossier %APPDATA%
-  FullPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('APPDATA')) + 'AppWatcher\Config\' + IniFileName;
-  if FileExists(FullPath, True) then
-    Result := FullPath;
-end;
-
-
-
-
+    // 📌 Dernier recours : dossier %APPDATA%
+    FullPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('APPDATA')) + 'AppWatcher\Config\' + IniFileName;
+    If FileExists(FullPath, True) Then
+        Result := FullPath;
+End;
 
 Function TAppLangManager.LoadLanguage(ALanguage: TAppWatcherLang): boolean;
-var
-    LangFileName: string;
-begin
+Var
+    LangFileName: String;
+Begin
     FLanguage := ALanguage;
     Result := false;
 
     //🔹 Sélection du bon fichier selon la langue
-    case FLanguage of
+    Case FLanguage Of
         langFr:
             LangFileName := LangFrIniFileName;
         langEn:
             LangFileName := LangEnIniFileName;
-    end;
+    End;
 
     //🔹 Trouver dynamiquement le chemin du fichier
     LangFileName := FindConfigPath(LangFileName);
 
-    if (LangFileName <> '') then
-    begin
+    If (LangFileName <> '') Then Begin
         //🔹 Libération de l'ancien fichier INI
         FreeAndNil(FIniFIleLang);
         //🔹 Chargement du fichier
         FIniFIleLang := TMemIniFile.Create(LangFileName, TEncoding.UTF8);
         Result := True;
-    end;
-end;
+    End;
+End;
 
-function TAppLangManager.GetMessage(const Section, Key: string): string;
-begin
-    if Assigned(FIniFIleLang) then
+Function TAppLangManager.GetMessage(Const Section, Key: String): String;
+Begin
+    If Assigned(FIniFIleLang) Then
         Result := FIniFIleLang.ReadString(Section, Key, '[' + Section + '].' + Key)
-    else
+    Else
         Result := '[' + Section + '].' + Key;
 
     //🔹 Supprime les guillemets s'il y en a
@@ -229,6 +222,7 @@ begin
 
     //🔹 Remplace \n par des sauts de ligne réels
     Result := StringReplace(Result, '\n', sLineBreak, [rfReplaceAll]);
-end;
+End;
 
-end.
+End.
+

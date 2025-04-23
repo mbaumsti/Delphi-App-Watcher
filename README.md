@@ -44,6 +44,7 @@ All of this **without using RDP** or physically accessing each machine.
 ✅ **New (v2.0): Application deployment** – automatic and optimized copying of executable files.
 ✅ **New (v3.0): New architecture using Named Pipes** for local communication between Clients and the Agent.  
 ✅ **New (v3.0): New `AppWatcherStub` utility** to relaunch the Agent after it has been stopped.  
+✅ **New (v3.1): Backup of replaced executables ** with rotation and recovery management.
 
 ---
 
@@ -62,7 +63,7 @@ AppWatcher consists of **three main components**:
    - **New (v3.0): AppWatcherStub utility** to allow restarting agent after stopping it.
    - **New (v2.0): Manages the list of applications to deploy** via a dedicated interface.
    - **New (v2.0): Sorting and filtering** to display only the applications to deploy.
-
+   - **New (v3.1): Backup of replaced executables ** with rotation and recovery management.
 
 2. **🖥️ AppWatcher Agent** – A **lightweight background application** running on remote machines that:
    
@@ -84,9 +85,8 @@ AppWatcher consists of **three main components**:
 
 ## 📦 Installation
 
-👉 **Precompiled binaries are available in v3.0.0 for quick testing without compilation.**
-📌 [Download here](https://github.com/mbaumsti/Delphi-App-Watcher/releases/tag/v3.0.0)
-
+👉 **Precompiled binaries are available for quick testing without compilation.**
+📌 [Download here](https://github.com/mbaumsti/Delphi-App-Watcher/releases/latest)
 
 ### 🔹 **1. Setting Up the Master Server**
 
