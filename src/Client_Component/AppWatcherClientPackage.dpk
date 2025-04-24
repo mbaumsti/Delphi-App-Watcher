@@ -25,7 +25,10 @@ package AppWatcherClientPackage;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
+{$IF CompilerVersion >= 34.0} // Delphi 10.4
 {$LIBSUFFIX AUTO}
+{$ENDIF}
+
 {$IMPLICITBUILD ON}
 
 requires

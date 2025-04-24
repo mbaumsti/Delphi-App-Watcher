@@ -116,7 +116,6 @@
                     <Source Name="MainSource">AppWatcherClientPackage.dpk</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\bpl\AppWatcherClientPackage290.bpl">(sans titre)</Excluded_Packages>
                     <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\SynMemoProj290.bpl">(sans titre)</Excluded_Packages>
                     <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\SynSpellCheckProj290.bpl">(sans titre)</Excluded_Packages>
                     <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\23.0\Bpl\SynHighlighterRegExProj290.bpl">(sans titre)</Excluded_Packages>

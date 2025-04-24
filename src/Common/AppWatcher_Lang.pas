@@ -35,6 +35,7 @@
   - [23/04/2025] : v3.1 Introduction of the `TAWStringArray` type for Multi-version compatibility:
                             - In Delphi 12+: alias to `TArray<string>`
                             - In Delphi ≤ 11: alias to `TStringDynArray`
+  - [24/04/2025] : v3.1.1 Adding System.Types in uses clause
 
   Notes :
   -------
@@ -47,7 +48,7 @@ Interface
 
 Uses
     System.SysUtils, System.IniFiles, System.Classes, Vcl.Forms, Windows, ActiveX, ComObj, ShlObj,
-    AppWatcher_consts;
+    AppWatcher_consts,System.Types;
 
 Type
 

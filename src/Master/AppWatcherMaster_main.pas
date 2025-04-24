@@ -46,6 +46,7 @@
   - [21/04/2025) : v3.1 - Fixed close issue with Adding test  if assigned(FLanguageManager) in IdTCPServer1Disconnect
                         - Fixed read of ini file StopTimeOut value in on create
                         - Fixed read of ini file Port value in TimerupdateClientTimer
+  - [21/04/2025) : v3.1.1 - Fixed StringGridApp.BeginUpdate and EndUpdate place in conditionnal compilation  {$IF CompilerVersion >= 35.0} // Delphi 12+     StringGridApp.BeginUpdate;
 
   Note :
   -------
@@ -77,7 +78,6 @@ Type
         Procedure init(Msg: TAppWatcherMessage; Context: TIdContext);
         Class Operator Equal(Const A, B: TAppRec): Boolean;
     End;
-
 
     TFormAppWatcherMaster = Class(TForm)
         IdTCPServer1: TIdTCPServer;
@@ -235,8 +235,6 @@ Begin
     (A.AppHandle = B.AppHandle);
 End;
 
-
-
 Function TFormAppWatcherMaster.HostName(Context: TIdContext): String;
 Begin
     Try
@@ -336,7 +334,7 @@ Begin
             If ServerIP <> ServerIPini Then
                 Ini.WriteString('MasterConfig', 'ServerIP', ServerIP);
 
-            RzNumericEdit1.IntValue:= Ini.ReadInteger('MasterConfig', 'StopTimeOut',30);
+            RzNumericEdit1.IntValue := Ini.ReadInteger('MasterConfig', 'StopTimeOut', 30);
         Finally
             Ini.Free;
         End;
@@ -436,7 +434,9 @@ Var
 
 Begin
     //Désactiver les mises à jour visuelles pendant la mise à jour du contenu
+{$IF CompilerVersion >= 35.0} // Delphi 12+
     StringGridApp.BeginUpdate;
+{$ENDIF}
     Try
         FAppListLock.Enter; //🔒 Protection contre l'accès concurrent
         Try
@@ -489,7 +489,9 @@ Begin
         End;
     Finally
         //Réactiver les mises à jour visuelles après la mise à jour du contenu
+{$IF CompilerVersion >= 35.0}
         StringGridApp.EndUpdate;
+{$ENDIF}
         FreeAndNil(FilteredList);
     End;
 End;
@@ -900,7 +902,7 @@ Procedure TFormAppWatcherMaster.TimerupdateClientTimer(Sender: TObject);
 Var
     ini: TIniFile;
     ServerIPini, ServerIP: String;
-    Port,StopTimeOut : integer;
+    Port, StopTimeOut: integer;
 Begin
     // Vérifier si le MASTER est toujour MASTER
     If FileExists(FIniFilePathName) And (FLastIniModified <> TFile.GetLastWriteTime(FIniFilePathName)) Then Begin
@@ -912,18 +914,16 @@ Begin
             ServerIP := GetLocalIP;
             //Si l'adresse dans le fichier ini ne correspond pas à l'IP alors celà veux dire que ce serveur à perdu le contrôle
 
-            If ServerIP <> ServerIPini Then
-            begin
+            If ServerIP <> ServerIPini Then Begin
                 MemoLogs.Lines.Add(format(FLanguageManager.GetMessage('MASTER', 'LOST_CONTROL'), [ServerIPini]));
                 exit;
-            end;
+            End;
             port := Ini.ReadInteger('MasterConfig', 'Port', 2510);
-            if port<>IdTCPServer1.DefaultPort then begin
-               IdTCPServer1.Active:=false;
-               IdTCPServer1.DefaultPort:=Port;
-               IdTCPServer1.Active:=true;
-            end;
-
+            If port <> IdTCPServer1.DefaultPort Then Begin
+                IdTCPServer1.Active := false;
+                IdTCPServer1.DefaultPort := Port;
+                IdTCPServer1.Active := true;
+            End;
 
         Finally
             Ini.Free;

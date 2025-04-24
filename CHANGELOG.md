@@ -1,5 +1,22 @@
 # Changelog  
 
+### 🛠 v3.1.1 – 2025-04-24
+
+### ✨ Added
+- **Compiler compatibility improvements**
+  - Conditional use of `{$LIBSUFFIX 'Auto'}` in `.dpk` to support Delphi 10.4+ only.
+  - Added `System.Types` to `AppWatcher_Lang.pas` to support `TStringDynArray` in Delphi 10.2.
+  
+### 🐛 Fixed
+- **Delphi 10.2.3 build issues**
+  - Removed unsupported `StringGridApp.BeginUpdate` / `EndUpdate` in `AppWatcherMaster_main.pas` for Delphi < 11.
+  - Validated builds from Delphi 10.2 Tokyo to Delphi 12 Athens.
+
+### 🔄 Upgrade Notes
+1. If you're using Delphi 10.2, re-compile the project — compatibility patches are now active.
+2. Check that any custom grid logic does not rely on `BeginUpdate/EndUpdate` unless you use a component that provides it (e.g. `TMS`, `VirtualStringTree`, etc.).
+
+
 ### 🚀 v3.1.0 – 2025-04-23
 
 ### ✨ Added
