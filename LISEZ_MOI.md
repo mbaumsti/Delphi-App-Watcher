@@ -14,7 +14,6 @@ Il est conçu pour les **développeurs et administrateurs IT** qui doivent :
 
 Tout cela **sans utiliser RDP** ni accéder physiquement à chaque machine.
 
-**✅ Développé en Delphi 12.2**  
 
 ![AppWatcherMaster](https://github.com/user-attachments/assets/30e6fae7-94f2-4479-9a96-fe347d16bf9c)
 
@@ -48,6 +47,19 @@ Tout cela **sans utiliser RDP** ni accéder physiquement à chaque machine.
 ✅ **Nouveau (v3.1) : Sauvegarde des executables remplacés** avec gestion des rotations et de la récupération.  
 
 ---
+
+## 🧩 Prérequis
+
+- Delphi 10.2 Tokyo → Delphi 12 Athens
+- Windows 32 bits ou 64 bits
+- [Raize Components](https://www.raize.com/DevTools/Download/index.htm) (nécessaire pour le composant `TRzNumericEdit`)  
+  - ✅ **Si vous disposez de Delphi 10.2+ Professionnel ou Enterprise**, Raize Components est peut-être déjà installé.  
+  - 🔔 **Sinon**, vous devrez installer Raize Components manuellement ou remplacer `TRzNumericEdit` par un `TSpinEdit` standard (ce qui nécessitera quelques ajustements mineurs sur l'interface).
+
+- Indy Components (déjà inclus avec Delphi)
+- [NamedPipesForDelphi](https://github.com/superflexible/NamedPipesForDelphi) (déjà intégré aux sources de AppWatcher)
+
+--
 
 ## 🛠️ Comment ça fonctionne ?  
 
@@ -84,6 +96,25 @@ AppWatcher est composé de **trois éléments principaux** :
 - Facilite l’intégration d’AppWatcher dans des applications Delphi avec **un minimum de code**.  
 
  
+---
+
+## 🔥 Notes de version Delphi
+
+**✅ Cette application a été initialement développée en Delphi v12.2.**
+
+Selon votre version de Delphi, veuillez ouvrir le paquet approprié:
+
+| Version Delphi | Paquet à ouvrir |
+|:---------------|:----------------|
+| Delphi 10.2 Tokyo / 10.3 Rio | `AppWatcherClientPackage_Pre104.dpk` |
+| Delphi 10.4 Sydney et versions ultérieures | `AppWatcherClientPackage.dpk` |
+
+**Important:**
+- `{$LIBSUFFIX 'Auto'}` n'est pris en charge qu'à partir de Delphi 10.4.
+- L'utilisation d'un paquet incorrect peut entraîner des erreurs de compilation ou de liaison.
+
+🙏 **Remerciements spéciaux** à [limelect](https://github.com/limelect) pour son aide à l'adaptation d'AppWatcher à la compatibilité Delphi 10.2.
+
 ---
 
 ## 📦 Installation  

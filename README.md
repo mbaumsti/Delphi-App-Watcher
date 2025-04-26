@@ -14,8 +14,6 @@ It is designed for **developers and IT administrators** who need to:
 
 All of this **without using RDP** or physically accessing each machine.
 
-**✅ Developed in Delphi 12.2**  
-
 ![AppWatcherMasterEN](https://github.com/user-attachments/assets/3a717d45-8f6c-44f7-a537-d49768c8574c)
 
 ---
@@ -47,6 +45,18 @@ All of this **without using RDP** or physically accessing each machine.
 ✅ **New (v3.1): Backup of replaced executables** with rotation and recovery management.
 
 ---
+## 🧩 Requirements
+
+- Delphi 10.2 Tokyo → Delphi 12 Athens
+- Windows 32-bit or 64-bit
+- [Raize Components](https://www.raize.com/DevTools/Download/index.htm) library (for `TRzNumericEdit`)  
+  - ✅ **If you have Delphi 10.2+ Professional/Enterprise**, Raize Components may already be included.  
+  - 🔔 **Otherwise**, install Raize Components manually or replace `TRzNumericEdit` with a standard `TSpinEdit` (requires minor UI adjustments).
+
+- Indy Components (comes with Delphi by default)
+- [NamedPipesForDelphi](https://github.com/superflexible/NamedPipesForDelphi) (already included inside AppWatcher sources)
+
+--
 
 ## 🛠️ How It Works
 
@@ -81,6 +91,26 @@ AppWatcher consists of **three main components**:
    - Ensures a **clean shutdown and possible restart after an update**.  
    - Simplifies integration of AppWatcher into Delphi applications with minimal coding.
    - 
+---
+
+## 🔥 Delphi Version Notes
+
+**✅ This application was originally developed in Delphi v12.2.**
+
+Depending on your Delphi version, please open the appropriate package:
+
+| Delphi Version | Package to open |
+|:---------------|:----------------|
+| Delphi 10.2 Tokyo / 10.3 Rio | `AppWatcherClientPackage_Pre104.dpk` |
+| Delphi 10.4 Sydney and later | `AppWatcherClientPackage.dpk` |
+
+**Important:**  
+- `{$LIBSUFFIX 'Auto'}` is supported only from Delphi 10.4 onward.
+- Using the wrong package may cause build or linking errors.
+
+
+🙏 **Special thanks** to [limelect](https://github.com/limelect) for his help in adapting AppWatcher to Delphi 10.2 compatibility.
+
 ---
 
 ## 📦 Installation

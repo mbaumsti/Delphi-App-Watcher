@@ -1,6 +1,6 @@
 ﻿(*******************************************************************************
   Project   : AppWatcher
-  Package   : AppWatcherClientPackage.dpk
+  Package   : AppWatcherClientPackage_Pre104.dpk
   Author    : mbaumsti
   Date      : 25/04/2025
   Version   : 3.1.2
@@ -8,18 +8,18 @@
   Description :
   -------------
     Runtime package containing AppWatcher client-side components and IPC handlers.
-    This version is intended for Delphi 10.4 Sydney and newer versions only.
+    This version is intended for Delphi versions **prior to 10.4** (10.2 Tokyo, 10.3 Rio).
 
   Notes :
   -------
-    - Compatible with Delphi 10.4 Sydney, Delphi 11 Alexandria, Delphi 12 Athens and later.
-    - LIBSUFFIX 'Auto' is used to automatically append version information to the BPL.
+    - Compatible with Delphi 10.2 Tokyo and Delphi 10.3 Rio.
+    - No LIBSUFFIX directive included (Delphi versions prior to 10.4 do not support it).
     - PipeClient and PipesCommon are included from the Common folder.
-    - Designed to be used with AppWatcherMaster and AppWatcherAgent applications.
+    - Designed to be used with AppWatcherMaster and AppWatcherAgent applications.	
 
   Change Log :
   ------------
-    - [25/04/2025] : Created a dedicated package for Delphi 10.4+ with LIBSUFFIX 'Auto'.
+    - [25/04/2025] : Created a dedicated package without LIBSUFFIX for Delphi < 10.4 compatibility.
 
   License :
   ---------
@@ -54,7 +54,6 @@ package AppWatcherClientPackage;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
-{$LIBSUFFIX AUTO}
 {$IMPLICITBUILD ON}
 
 requires

@@ -19,4 +19,9 @@ for communication between the Agent and the Client via Windows Named Pipes.
 
 ---
 
+## Special Thanks
+
+- [Raize Software](https://www.raize.com/) for the **Raize Components** library, used for enhanced numeric input controls.
+
+
 We thank all contributors and open-source authors whose work made this project possible.

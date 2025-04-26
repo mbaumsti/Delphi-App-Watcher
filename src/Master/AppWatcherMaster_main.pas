@@ -4,7 +4,7 @@
   Author  : mbaumsti
   GitHub  : https://github.com/mbaumsti/Delphi-App-Watcher.git
   Date    : 09/04/2025
-  Version : 3.1
+  Version : 3.1.2
   License : MIT
 
   Description :
@@ -47,6 +47,11 @@
                         - Fixed read of ini file StopTimeOut value in on create
                         - Fixed read of ini file Port value in TimerupdateClientTimer
   - [21/04/2025) : v3.1.1 - Fixed StringGridApp.BeginUpdate and EndUpdate place in conditionnal compilation  {$IF CompilerVersion >= 35.0} // Delphi 12+     StringGridApp.BeginUpdate;
+  - [26/04/2025] : v3.1.2 - Fixed Delphi 10.2 incompatibilities:
+                          - Removed unsupported grid options from DFM (goFixedColClick, goFixedRowClick, etc.)
+                          - Moved their activation to FormCreate for Delphi 10.4+
+                          - Corrected signature of OnDrawCell (Integer instead of LongInt)
+
 
   Note :
   -------
@@ -123,7 +128,8 @@ Type
         Procedure RdioEnglishClick(Sender: TObject);
         Procedure RdioFrenchClick(Sender: TObject);
         Procedure StringGridAppDblClick(Sender: TObject);
-        Procedure StringGridAppDrawCell(Sender: TObject; ACol, ARow: LongInt; Rect:
+        // 2025-04-26 Signature   ACol,  ARow: integer au lieu  ACol,  ARow: LongInt pour rétrocompatibilté avec Delphi 10.2
+        Procedure StringGridAppDrawCell(Sender: TObject; ACol, ARow: Integer; Rect:
             TRect; State: TGridDrawState);
         Procedure StringGridAppFixedCellClick(Sender: TObject; ACol, ARow: LongInt);
         Procedure StringGridAppKeyDown(Sender: TObject; Var Key: Word; Shift:
@@ -268,6 +274,17 @@ Begin
     FSortColumn := 0;
 
     Try
+
+{$IF CompilerVersion >= 34.0} // Delphi 10.4+
+        StringGridApp.Options := StringGridApp.Options + [
+            goFixedColClick,
+            goFixedRowClick,
+            goFixedHotTrack,
+            goFixedColDefAlign,
+            goFixedRowDefAlign
+            ];
+{$ENDIF}
+
         //🔹 Vérification des paramètres en ligne de commande (-lang:fr ou -lang:en)
         If FindCmdLineSwitch('lang', LangValue, True, [clstValueNextParam, clstValueAppended]) Then Begin
             LangValue := LowerCase(LangValue);
@@ -643,8 +660,9 @@ Begin
     End;
 End;
 
+// 2025-04-26 Signature   ACol,  ARow: integer au lieu  ACol,  ARow: LongInt pour rétrocompatibilté avec Delphi 10.2
 Procedure TFormAppWatcherMaster.StringGridAppDrawCell(Sender: TObject; ACol,
-    ARow: LongInt; Rect: TRect; State: TGridDrawState);
+    ARow: Integer; Rect: TRect; State: TGridDrawState);
 Var
     TextRect: TRect;
     Flags: Integer;

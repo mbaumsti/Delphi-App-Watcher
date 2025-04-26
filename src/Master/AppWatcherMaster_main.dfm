@@ -935,7 +935,7 @@ object FormAppWatcherMaster: TFormAppWatcherMaster
         DefaultDrawing = False
         FixedCols = 0
         RowCount = 2
-        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goFixedColClick, goFixedRowClick, goFixedHotTrack, goFixedColDefAlign, goFixedRowDefAlign]
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing]
         ParentShowHint = False
         ShowHint = True
         TabOrder = 0

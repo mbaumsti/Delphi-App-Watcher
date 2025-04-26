@@ -1,5 +1,30 @@
 # Changelog  
 
+### 🛠 v3.1.2 – 2025-04-26
+
+### ✨ Added
+- **Full Delphi 10.2 compatibility validation**
+  - Verified all main units (`AppWatcherMaster_main.pas`, `AppWatcherMaster_Deploy.pas`, `AppWatcherMaster_Backup.pas`) against Delphi 10.2 Tokyo.
+  - Dynamically activated `StringGrid` options (`goFixedColClick`, `goFixedRowClick`, etc.) only in Delphi 10.4+ via `FormCreate`.
+  - Corrected the `OnDrawCell` event signature to use `Integer` instead of `LongInt`.
+- **Separation of runtime packages (`.dpk`)**
+  - `AppWatcherClientPackage_Pre104.dpk` created for Delphi 10.2 and 10.3 without `{$LIBSUFFIX 'Auto'}`.
+  - `AppWatcherClientPackage.dpk` maintained for Delphi 10.4 and above, using `{$LIBSUFFIX 'Auto'}`.
+
+### 🐛 Fixed
+- **Potential startup crash on Delphi 10.2**
+  - Removal of non-supported options in `.dfm` files.
+  - Ensured proper event handler binding for `TStringGrid` and `TListView`.
+
+### 🔄 Upgrade Notes
+1. If you experience project loading errors in Delphi 10.2 (`Property X does not exist`), ensure you refresh `.dfm` files.
+2. If you had customized grid or list components, validate the event signatures (`OnDrawCell`, etc.).
+3. Use the correct `.dpk` depending on your Delphi version:
+   - **Delphi 10.2 / 10.3** ➔ `AppWatcherClientPackage_Pre104.dpk`
+   - **Delphi 10.4+** ➔ `AppWatcherClientPackage.dpk`
+
+---
+
 ### 🛠 v3.1.1 – 2025-04-24
 
 ### ✨ Added
@@ -16,6 +41,7 @@
 1. If you're using Delphi 10.2, re-compile the project — compatibility patches are now active.
 2. Check that any custom grid logic does not rely on `BeginUpdate/EndUpdate` unless you use a component that provides it (e.g. `TMS`, `VirtualStringTree`, etc.).
 
+---
 
 ### 🚀 v3.1.0 – 2025-04-23
 
@@ -42,6 +68,7 @@
 1. **Master only:** ensure `Folder` is writable when rotation is enabled.
 2. Re-compile all projects so the new `TAWStringArray` alias is available.
 
+---
 
 ## ⚙️ v3.0.0 - 09/04/2025
 
@@ -68,6 +95,8 @@
 - This change **requires** that all components are updated together (Master, Agent, Client).
 - The rest of the AppWatcher protocol remains compatible with v2.0.0.
 
+---
+
 ## 🔄 v2.0.1 - 10/03/2025  
 
 ### 🛠 Fixed  
@@ -85,6 +114,7 @@
 - This update **does not break compatibility** with `2.0.0`.  
 - If you were affected by **deletion issues after sorting**, upgrading is highly recommended.  
 
+---
 
 ## 🚀 v2.0.0 - 09/03/2025  
 
@@ -130,22 +160,26 @@
 
 🚀 **With v2.0.0, AppWatcher is now a full-fledged **deployment tool** in addition to monitoring!** 🎉  
 
-
-
-
+---
 
 ## v1.3.4 - 28/02/2025  
 ### ✨ Added  
 - Added a **filtering system** in `TStringGrid`, allowing users to filter applications dynamically.  
 
+---
+
 ## v1.3.3 - 27/02/2025  
 ### 🚀 Improved  
 - Improved **clean shutdown process** for the Indy server when closing the application.  
+
+---
 
 ## v1.3.2 - 25/02/2025  
 ### 🛠 Fixed  
 - **Application shutdown logic**: The shutdown request now correctly applies **only** to the targeted application, instead of affecting all running instances.  
 - **Ensured correct working directory**: Restarted applications now launch from their **original** working directory instead of the system default.  
+
+---
 
 ## v1.3.0 - 24/02/2025  
 ### 🚀 Improved  
@@ -156,10 +190,14 @@
 ### 📖 Documentation  
 - Updated `README.md` to clarify that **AppWatcher** is a Delphi component, specifically designed for **Delphi 12.2 Athens**.  
 
+---
+
 ## v1.2.1 (Patch) - 25/02/2025  
 ### 🛠 Fixed  
 - **Missing `Config\` folder check** in `FindConfigPath`.  
   - Ensures `.ini` files can be found even if placed inside `Config\`.  
+
+---
 
 ## v1.2.0 - 23/02/2025  
 ### 🛠 Fixed  
@@ -168,6 +206,8 @@
 
 ### 🔥 Cleanup  
 - **Removed** the old setup script (`AppWatcherLink.cmd`), which is no longer needed.  
+
+---
 
 ## v1.1.0 - 23/02/2025  
 ### 🚀 Improved  
@@ -180,6 +220,8 @@
     - `AppWatcher_lang_fr.ini` (French)  
     - `AppWatcher_lang_en.ini` (English)  
   - **Improved wording** for better clarity.  
+
+---
 
 ## v1.0 - 09/02/2025  
 🎉 First **stable version** released!  
