@@ -118,6 +118,22 @@ Depending on your Delphi version, please open the appropriate package:
 👉 **Precompiled binaries are available for quick testing without compilation.**
 📌 [Download here](https://github.com/mbaumsti/Delphi-App-Watcher/releases/latest)
 
+
+### 📚 Developer Setup Instructions
+
+If you are building AppWatcher from source:
+
+- All `.dproj` and `.groupproj` files have been removed to avoid Delphi version conflicts.
+- You must manually open and compile the `.dpk` and `.dpr` files inside your version of Delphi.
+- Please follow the detailed guide in **[BUILD_INSTRUCTIONS.md](BUILD_INSTRUCTIONS.md)**.
+
+👉 It explains:
+- How to open the right packages (`.dpk`)
+- How to install the component
+- How to configure Delphi's Library Paths correctly
+- How to rebuild the missing `.dproj` or `.groupproj` files if needed.
+
+
 ### 🔹 **1. Setting Up the Master Server**
 
 - Run `AppWatcherMaster.exe` on the machine that will act as the **control center**.  
